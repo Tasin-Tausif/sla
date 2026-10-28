@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedInteger('row_number');
             $table->json('raw_data');
             $table->text('error_message');
-            $table->timestamp('created_at')->nullable();
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['import_batch_id', 'row_number']);
         });

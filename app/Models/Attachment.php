@@ -18,12 +18,9 @@ class Attachment extends Model
         'size',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'size' => 'integer',
-        ];
-    }
+    protected $casts = [
+        'size' => 'integer',
+    ];
 
     public function ticket(): BelongsTo
     {

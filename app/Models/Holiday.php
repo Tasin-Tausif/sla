@@ -9,12 +9,9 @@ class Holiday extends Model
 {
     protected $fillable = ['holiday_date', 'name'];
 
-    protected function casts(): array
-    {
-        return [
-            'holiday_date' => 'date:Y-m-d',
-        ];
-    }
+    protected $casts = [
+        'holiday_date' => 'date:Y-m-d',
+    ];
 
     public function scopeForYear(Builder $query, int $year): Builder
     {

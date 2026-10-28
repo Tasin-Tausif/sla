@@ -44,25 +44,22 @@ class Ticket extends Model
         'import_batch_id',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'priority' => TicketPriority::class,
-            'status' => TicketStatus::class,
-            'assigned_at' => 'datetime',
-            'sla_due_at' => 'datetime',
-            'sla_warning_sent_at' => 'datetime',
-            'sla_breached_at' => 'datetime',
-            'sla_paused_at' => 'datetime',
-            'sla_paused_minutes' => 'integer',
-            'first_response_at' => 'datetime',
-            'resolved_at' => 'datetime',
-            'closed_at' => 'datetime',
-            'escalated_at' => 'datetime',
-            'sla_minutes' => 'integer',
-            'escalation_level' => 'integer',
-        ];
-    }
+    protected $casts = [
+        'priority' => TicketPriority::class,
+        'status' => TicketStatus::class,
+        'assigned_at' => 'datetime',
+        'sla_due_at' => 'datetime',
+        'sla_warning_sent_at' => 'datetime',
+        'sla_breached_at' => 'datetime',
+        'sla_paused_at' => 'datetime',
+        'sla_paused_minutes' => 'integer',
+        'first_response_at' => 'datetime',
+        'resolved_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'escalated_at' => 'datetime',
+        'sla_minutes' => 'integer',
+        'escalation_level' => 'integer',
+    ];
 
     public function category(): BelongsTo
     {

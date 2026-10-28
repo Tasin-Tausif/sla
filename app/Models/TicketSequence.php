@@ -16,11 +16,8 @@ class TicketSequence extends Model
 
     protected $keyType = 'int';
 
-    protected function casts(): array
-    {
-        return [
-            'year' => 'integer',
-            'last_number' => 'integer',
-        ];
-    }
+    protected $casts = [
+        'year' => 'integer',
+        'last_number' => 'integer',
+    ];
 }

@@ -20,8 +20,10 @@ class RolePermissionSeeder extends Seeder
             'tickets.create',
             'tickets.update',
             'tickets.assign',
+            'tickets.accept',
             'tickets.resolve',
             'tickets.close',
+            'tickets.reopen',
             'tickets.delete',
             'tickets.reply',
             'tickets.internal-note',
@@ -37,9 +39,9 @@ class RolePermissionSeeder extends Seeder
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $administrator = Role::findOrCreate('Administrator', 'web');
-        $supportAgent = Role::findOrCreate('Support Agent', 'web');
-        $customer = Role::findOrCreate('Customer', 'web');
+        $administrator = Role::findOrCreate('admin', 'web');
+        $supportAgent = Role::findOrCreate('agent', 'web');
+        $customer = Role::findOrCreate('customer', 'web');
 
         $administrator->syncPermissions($permissions);
 
@@ -49,8 +51,10 @@ class RolePermissionSeeder extends Seeder
             'tickets.view',
             'tickets.update',
             'tickets.assign',
+            'tickets.accept',
             'tickets.resolve',
             'tickets.close',
+            'tickets.reopen',
             'tickets.reply',
             'tickets.internal-note',
             'tickets.import',

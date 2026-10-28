@@ -10,15 +10,12 @@ class SlaPolicy extends Model
 {
     protected $fillable = ['priority', 'resolution_minutes', 'warning_threshold_percent', 'is_active'];
 
-    protected function casts(): array
-    {
-        return [
-            'priority' => TicketPriority::class,
-            'resolution_minutes' => 'integer',
-            'warning_threshold_percent' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'priority' => TicketPriority::class,
+        'resolution_minutes' => 'integer',
+        'warning_threshold_percent' => 'integer',
+        'is_active' => 'boolean',
+    ];
 
     public function tickets(): HasMany
     {

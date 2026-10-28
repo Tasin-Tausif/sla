@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
                 'max_open_tickets' => 0,
             ],
         );
-        $administrator->syncRoles(['Administrator']);
+        $administrator->syncRoles(['admin']);
 
         $aisha = $this->upsertUser(
             name: 'Aisha Rahman',
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
                 'max_open_tickets' => 10,
             ],
         );
-        $aisha->syncRoles(['Support Agent']);
+        $aisha->syncRoles(['agent']);
 
         $daniel = $this->upsertUser(
             name: 'Daniel Chen',
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
                 'max_open_tickets' => 8,
             ],
         );
-        $daniel->syncRoles(['Support Agent']);
+        $daniel->syncRoles(['agent']);
 
         $customerOne = $this->upsertUser(
             name: 'Fatima Al-Sayed',
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
                 'max_open_tickets' => 0,
             ],
         );
-        $customerOne->syncRoles(['Customer']);
+        $customerOne->syncRoles(['customer']);
 
         $customerTwo = $this->upsertUser(
             name: 'Omar Haddad',
@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
                 'max_open_tickets' => 0,
             ],
         );
-        $customerTwo->syncRoles(['Customer']);
+        $customerTwo->syncRoles(['customer']);
 
         $categories = DB::table('categories')
             ->whereIn('slug', ['technical-support', 'billing', 'account-access'])

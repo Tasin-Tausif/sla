@@ -24,19 +24,16 @@ class ImportBatch extends Model
         'finished_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'status' => ImportStatus::class,
-            'total_rows' => 'integer',
-            'processed_rows' => 'integer',
-            'imported_rows' => 'integer',
-            'duplicate_rows' => 'integer',
-            'failed_rows' => 'integer',
-            'started_at' => 'datetime',
-            'finished_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'status' => ImportStatus::class,
+        'total_rows' => 'integer',
+        'processed_rows' => 'integer',
+        'imported_rows' => 'integer',
+        'duplicate_rows' => 'integer',
+        'failed_rows' => 'integer',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {

@@ -11,13 +11,10 @@ class ImportError extends Model
 
     protected $fillable = ['import_batch_id', 'row_number', 'raw_data', 'error_message'];
 
-    protected function casts(): array
-    {
-        return [
-            'row_number' => 'integer',
-            'raw_data' => 'array',
-        ];
-    }
+    protected $casts = [
+        'row_number' => 'integer',
+        'raw_data' => 'array',
+    ];
 
     public function importBatch(): BelongsTo
     {
