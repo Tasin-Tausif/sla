@@ -16,8 +16,7 @@ return new class extends Migration
             $table->boolean('is_internal')->default(false);
             $table->timestamps();
 
-            $table->index(['ticket_id', 'created_at']);
-            $table->index(['ticket_id', 'is_internal']);
+            $table->index(['ticket_id', 'is_internal', 'created_at']);
         });
     }
 

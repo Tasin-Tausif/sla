@@ -19,9 +19,6 @@ return new class extends Migration
             $table->string('mime_type', 100);
             $table->unsignedBigInteger('size');
             $table->timestamps();
-
-            $table->index('ticket_id');
-            $table->index('reply_id');
         });
     }
 

@@ -20,12 +20,10 @@ return new class extends Migration
             $table->foreignId('assigned_agent_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('assigned_at')->nullable();
             $table->foreignId('sla_policy_id')->nullable()->constrained('sla_policies')->nullOnDelete();
-            $table->unsignedInteger('sla_minutes')->default(0);
-            $table->timestamp('sla_due_at')->nullable();
+            $table->unsignedInteger('sla_minutes');
+            $table->timestamp('sla_due_at');
             $table->timestamp('sla_warning_sent_at')->nullable();
             $table->timestamp('sla_breached_at')->nullable();
-            $table->timestamp('sla_paused_at')->nullable();
-            $table->unsignedInteger('sla_paused_minutes')->default(0);
             $table->timestamp('first_response_at')->nullable();
             $table->timestamp('resolved_at')->nullable();
             $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete();
@@ -38,7 +36,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['status', 'assigned_agent_id']);
+            $table->index(['assigned_agent_id', 'status']);
             $table->index(['status', 'sla_due_at']);
             $table->index(['created_by', 'status']);
             $table->index(['category_id', 'status']);

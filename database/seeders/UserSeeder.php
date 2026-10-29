@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class UserSeeder extends Seeder
 {
@@ -59,21 +58,6 @@ class UserSeeder extends Seeder
             ],
         );
         $customerTwo->syncRoles(['customer']);
-
-        $categories = DB::table('categories')
-            ->whereIn('slug', ['technical-support', 'billing', 'account-access'])
-            ->pluck('id', 'slug');
-
-        $assignments = [
-            ['user_id' => $aisha->id, 'category_id' => $categories['technical-support'] ?? null],
-            ['user_id' => $aisha->id, 'category_id' => $categories['account-access'] ?? null],
-            ['user_id' => $daniel->id, 'category_id' => $categories['billing'] ?? null],
-            ['user_id' => $daniel->id, 'category_id' => $categories['technical-support'] ?? null],
-        ];
-
-        $assignments = array_filter($assignments, fn (array $row) => $row['category_id'] !== null);
-
-        DB::table('agent_category')->insertOrIgnore($assignments);
     }
 
     /**
