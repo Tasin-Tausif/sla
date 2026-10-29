@@ -9,7 +9,7 @@
 | `holidays` | Kept. `SlaCalculator` skips holiday dates (one extra check in the day loop). |
 | Soft deletes on `tickets` | Kept in the schema only. No delete UI is built. |
 | `external_reference` | Globally unique (nullable). Used for CSV duplicate detection. |
-| `sla_due_at` | NOT NULL. Factory, seeder, `TicketService::create()` and the CSV import must compute it before insert. |
+| `sla_due_at` | NOT NULL. `sla_due_at` and `sla_warning_at` are both computed by `SlaCalculator` in the factory, seeder, `TicketService::create()` and the CSV import before insert. |
 
 ```mermaid
 erDiagram
@@ -78,6 +78,7 @@ erDiagram
         bigint sla_policy_id FK "nullable"
         int sla_minutes "snapshot of policy applied"
         timestamp sla_due_at "NOT NULL, UTC"
+        timestamp sla_warning_at "NOT NULL, UTC, start + threshold% of SLA in business minutes"
         timestamp sla_warning_sent_at "nullable"
         timestamp sla_breached_at "nullable"
         timestamp first_response_at "nullable"
@@ -256,11 +257,13 @@ Each index maps to a real query.
 **tickets**
 - Unique: `ticket_number`, `external_reference` (nullable; MySQL allows many NULLs in a unique index)
 - `(status, sla_due_at)`: escalation scheduler, SLA status filters, dashboard breach counts
+- `(status, sla_warning_at)`: approaching-breach filter and warning scheduler
 - `(assigned_agent_id, status)`: agent queue, workload count for auto-assign, unassigned queue (`assigned_agent_id IS NULL`)
 - `(created_by, status)`: customer "my tickets"
 - `(priority, status)`: dashboard by priority, Critical count
 - `(category_id, status)`
 - `(created_at)`: date filters and default sorting
+- FULLTEXT `(subject, description)`: keyword search (MySQL/MariaDB only)
 
 **ticket_replies**
 - `(ticket_id, is_internal, created_at)`: the customer view filters `is_internal = false` and sorts by time
@@ -293,12 +296,30 @@ Each index maps to a real query.
 1. SLA deadlines are computed in business minutes from `business_hours` and `holidays`. Times are stored in UTC and calculated in `Asia/Dhaka`.
 2. `SlaCalculator` is a pure class. It receives a cached config object (business hours, holidays, policies) and never queries the database inside its loop.
 3. `sla_minutes` is a snapshot of the policy applied at creation. On a priority change, `sla_due_at` is recomputed from `created_at` with the new priority's minutes.
-4. SLA status is derived from stored columns: breached when `sla_due_at < now` and the ticket is not resolved or closed; approaching when within the warning threshold of the due time.
+4. SLA status is derived from plain indexed queries over `sla_warning_at`, `sla_due_at` and `status`:
+   - approaching: `sla_warning_at <= now AND sla_due_at > now AND status not in (resolved, closed)`
+   - breached: `sla_due_at < now AND status not in (resolved, closed)`
+   - within SLA: `sla_warning_at > now AND status not in (resolved, closed)`
 5. Idempotent escalation: `sla_warning_sent_at`, `sla_breached_at` and `escalated_at` are set with guarded updates (`whereNull(...)`), so overlapping scheduler runs cannot notify twice.
-6. Concurrent assignment: atomic `UPDATE tickets SET assigned_agent_id = ? WHERE id = ? AND assigned_agent_id IS NULL`, then check the affected row count.
-7. Ticket numbers: increment `ticket_sequences` for the current year inside a transaction with `lockForUpdate()`. The unique index on `ticket_number` is the safety net.
-8. Attachment visibility is derived from the reply (`reply.is_internal`), not duplicated on the attachment.
-9. Agent visibility: agents see unassigned tickets plus their own. Admins see all. Customers see only tickets where `created_by` is themselves.
+6. Ticket numbers: increment `ticket_sequences` for the current year inside a transaction with `lockForUpdate()`. Insert the year row with `insertOrIgnore` first, because `lockForUpdate` cannot lock a row that does not exist yet. The unique index on `ticket_number` is the safety net.
+7. Attachment visibility is derived from the reply (`reply.is_internal`), not duplicated on the attachment.
+8. Agent visibility: agents see unassigned tickets plus their own. Admins see all. Customers see only tickets where `created_by` is themselves.
+9. On priority change, recompute `sla_due_at` and `sla_warning_at`, then call `resetSlaTracking()` if the new due time is in the future.
+10. Assignment: auto-assignment runs inside one `DB::transaction`, selects the candidate agent with `lockForUpdate()`, re-checks the open ticket count against `max_open_tickets`, then performs the atomic `UPDATE tickets SET assigned_agent_id = ?, assigned_at = now() WHERE id = ? AND assigned_agent_id IS NULL` and checks the affected row count. Manual claim uses the same atomic `UPDATE ... WHERE assigned_agent_id IS NULL` and affected-rows check. If 0 rows were affected, the ticket was already taken.
+11. Attachments with `reply_id` NULL are ticket-level and always visible to the customer. Internal files must be attached through an internal note (reply with `is_internal = true`); visibility is derived from the reply.
+12. CSV import: catch the unique-violation on `external_reference` and count it as a duplicate, because two chunks can race even after a pre-check.
+13. Internal notes never leak: the customer timeline excludes the `note_added` event, note bodies are never stored in activity properties, customers are never notified of internal notes, and `first_response_at` is set only by the first public (`is_internal = false`) reply from someone other than the ticket creator.
+14. `escalation_level`: 0 = none, 1 = warning sent (approaching SLA), 2 = breached. Warning and breach notifications go to the assigned agent and all administrators; if the ticket is unassigned, to administrators only.
+
+## CSV import format
+
+Required columns: `subject`, `description`, `priority`, `category_slug`, `customer_email`. Optional columns: `status`, `external_reference`, `created_at`.
+
+- Customer is resolved by email; an unknown email is a row error (users are not auto-created).
+- Category is resolved by slug; an unknown slug is a row error.
+- A duplicate `external_reference` is counted as a duplicate, not an error.
+- Invalid rows go to `import_errors` with `row_number` and `raw_data`.
+- The import computes `sla_due_at` and `sla_warning_at` with `SlaCalculator`.
 
 ## Not implemented (future work)
 

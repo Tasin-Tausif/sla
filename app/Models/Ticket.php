@@ -5,16 +5,22 @@ namespace App\Models;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 
+/**
+ * @property Carbon $sla_warning_at Moment the ticket becomes "approaching SLA breach": start + resolution_minutes * warning_threshold_percent / 100, in business minutes.
+ */
 class Ticket extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'ticket_number',
@@ -29,6 +35,7 @@ class Ticket extends Model
         'sla_policy_id',
         'sla_minutes',
         'sla_due_at',
+        'sla_warning_at',
         'sla_warning_sent_at',
         'sla_breached_at',
         'first_response_at',
@@ -47,6 +54,7 @@ class Ticket extends Model
         'status' => TicketStatus::class,
         'assigned_at' => 'datetime',
         'sla_due_at' => 'datetime',
+        'sla_warning_at' => 'datetime',
         'sla_warning_sent_at' => 'datetime',
         'sla_breached_at' => 'datetime',
         'first_response_at' => 'datetime',
@@ -132,6 +140,49 @@ class Ticket extends Model
         return $query->whereNotNull('sla_breached_at');
     }
 
+    public function scopeOpenForSla(Builder $query): Builder
+    {
+        return $query->whereNotIn('status', [
+            TicketStatus::Resolved->value,
+            TicketStatus::Closed->value,
+        ]);
+    }
+
+    public function scopeWithinSla(Builder $query): Builder
+    {
+        return $this->scopeOpenForSla($query)
+            ->where('sla_warning_at', '>', now());
+    }
+
+    public function scopeApproachingSla(Builder $query): Builder
+    {
+        $now = now();
+
+        return $this->scopeOpenForSla($query)
+            ->where('sla_warning_at', '<=', $now)
+            ->where('sla_due_at', '>', $now);
+    }
+
+    public function scopeBreachedSla(Builder $query): Builder
+    {
+        return $this->scopeOpenForSla($query)
+            ->where('sla_due_at', '<', now());
+    }
+
+    public function scopeSearchKeyword(Builder $query, string $term): Builder
+    {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            return $query->whereFullText(['subject', 'description'], $term);
+        }
+
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term);
+
+        return $query->where(function (Builder $query) use ($escaped) {
+            $query->where('subject', 'like', "%{$escaped}%")
+                ->orWhere('description', 'like', "%{$escaped}%");
+        });
+    }
+
     public function isActive(): bool
     {
         return $this->status instanceof TicketStatus && $this->status->isActive();
@@ -150,5 +201,21 @@ class Ticket extends Model
     public function isBreached(): bool
     {
         return $this->sla_breached_at !== null;
+    }
+
+    /**
+     * Reset SLA tracking after a priority change.
+     *
+     * Rule: when the priority changes and the recomputed sla_due_at is in the
+     * future, call this method so a ticket downgraded from Critical to Low can
+     * warn and escalate again. If the new sla_due_at is already in the past,
+     * do not reset.
+     */
+    public function resetSlaTracking(): void
+    {
+        $this->sla_warning_sent_at = null;
+        $this->sla_breached_at = null;
+        $this->escalated_at = null;
+        $this->escalation_level = 0;
     }
 }
