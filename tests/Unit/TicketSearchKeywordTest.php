@@ -1,10 +1,16 @@
 <?php
 
 use App\Models\Ticket;
+use Database\Seeders\BusinessHoursSeeder;
+use Database\Seeders\SlaPolicySeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
 uses(TestCase::class, DatabaseMigrations::class);
+
+beforeEach(function () {
+    $this->seed([BusinessHoursSeeder::class, SlaPolicySeeder::class]);
+});
 
 it('returns tickets matching the keyword in the subject', function () {
     $matching = Ticket::factory()->create([

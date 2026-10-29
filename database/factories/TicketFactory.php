@@ -7,6 +7,7 @@ use App\Enums\TicketStatus;
 use App\Models\Category;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\Sla\SlaCalculator;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,13 +23,8 @@ class TicketFactory extends Factory
     public function definition(): array
     {
         $createdAt = now();
-        $slaMinutes = 480;
-        $slaDueAt = $createdAt->copy()->addMinutes($slaMinutes);
-
-        // TODO replace with SlaCalculator
-        $slaWarningAt = $createdAt->copy()->addMinutes(
-            (int) floor($slaMinutes * 80 / 100),
-        );
+        $priority = TicketPriority::Medium;
+        $sla = app(SlaCalculator::class)->forPriority($priority, $createdAt);
 
         return [
             'ticket_number' => sprintf(
@@ -38,16 +34,17 @@ class TicketFactory extends Factory
             ),
             'subject' => fake()->sentence(),
             'description' => fake()->paragraph(),
-            'priority' => TicketPriority::Medium->value,
+            'priority' => $priority->value,
             'status' => TicketStatus::Open->value,
             'category_id' => Category::firstOrCreate(
                 ['slug' => 'general-inquiry'],
                 ['name' => 'General Inquiry', 'is_active' => true],
             )->id,
             'created_by' => User::factory(),
-            'sla_minutes' => $slaMinutes,
-            'sla_due_at' => $slaDueAt,
-            'sla_warning_at' => $slaWarningAt,
+            'sla_policy_id' => $sla['policy_id'],
+            'sla_minutes' => $sla['minutes'],
+            'sla_due_at' => $sla['due_at'],
+            'sla_warning_at' => $sla['warning_at'],
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ];

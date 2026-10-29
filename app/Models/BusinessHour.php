@@ -2,12 +2,19 @@
 
 namespace App\Models;
 
+use App\Services\Sla\SlaConfigLoader;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class BusinessHour extends Model
 {
     protected $fillable = ['day_of_week', 'is_working_day', 'start_time', 'end_time'];
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => SlaConfigLoader::forget());
+        static::deleted(fn () => SlaConfigLoader::forget());
+    }
 
     protected $casts = [
         'day_of_week' => 'integer',

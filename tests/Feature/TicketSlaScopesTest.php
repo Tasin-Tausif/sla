@@ -2,9 +2,12 @@
 
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use Database\Seeders\BusinessHoursSeeder;
+use Database\Seeders\SlaPolicySeeder;
 use Illuminate\Support\Carbon;
 
 beforeEach(function () {
+    $this->seed([BusinessHoursSeeder::class, SlaPolicySeeder::class]);
     Carbon::setTestNow(Carbon::parse('2026-01-15 12:00:00', 'UTC'));
 });
 
