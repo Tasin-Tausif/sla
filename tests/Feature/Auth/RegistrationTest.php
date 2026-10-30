@@ -20,7 +20,7 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('tickets.index', absolute: false));
 });
 
 test('newly registered users get the customer role and can open the ticket screens', function () {

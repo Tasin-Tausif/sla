@@ -190,7 +190,7 @@ class Ticket extends Model
 
     public function scopeSearchKeyword(Builder $query, string $term): Builder
     {
-        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) && mb_strlen($term) >= 3) {
             return $query->whereFullText(['subject', 'description'], $term);
         }
 

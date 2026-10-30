@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TicketStatus;
+use App\Http\Requests\FilterTicketsRequest;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\UpdateTicketRequest;
 use App\Models\Category;
@@ -10,6 +11,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Services\TicketActivityLogger;
 use App\Services\TicketAssignmentService;
+use App\Services\TicketFilter;
 use App\Services\TicketReplyService;
 use App\Services\TicketService;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,30 +24,33 @@ use Throwable;
 
 class TicketController extends Controller
 {
-    public function index(Request $request): View
+    public function index(FilterTicketsRequest $request, TicketFilter $filter): View
     {
         Gate::authorize('viewAny', Ticket::class);
 
         $view = $request->query('view') === 'closed' ? 'closed' : 'active';
 
-        $query = Ticket::query()
-            ->visibleTo($request->user())
-            ->with(['category', 'creator', 'assignedAgent']);
+        $query = Ticket::query()->visibleTo($request->user());
 
-        if ($view === 'closed') {
-            $query->whereNotIn('status', TicketStatus::activeValues())
-                ->orderByDesc('updated_at');
-        } else {
-            $query->active()
-                ->orderBy('sla_due_at')
-                ->orderBy('id');
+        if (! $request->filled('status') && ! $request->filled('sla_status')) {
+            if ($view === 'closed') {
+                $query->whereNotIn('status', TicketStatus::activeValues());
+            } else {
+                $query->active();
+            }
         }
+
+        $query = $filter->apply($query, $request->validated(), $request->user())
+            ->with(['category', 'creator', 'assignedAgent']);
 
         $tickets = $query->paginate(15)->withQueryString();
 
         return view('tickets.index', [
             'tickets' => $tickets,
             'view' => $view,
+            'categories' => $this->activeCategories(),
+            'agents' => User::query()->role('agent')->orderBy('name')->get(),
+            'isStaff' => $request->user()->can('tickets.internal-note'),
         ]);
     }
 

@@ -71,4 +71,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ImportBatch::class);
     }
+
+    public function homeRoute(): string
+    {
+        return $this->can('dashboard.view') ? 'dashboard' : 'tickets.index';
+    }
 }

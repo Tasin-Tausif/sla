@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('tickets.index', absolute: false));
+        return redirect()->intended(route($request->user()->homeRoute(), absolute: false));
     }
 
     /**
