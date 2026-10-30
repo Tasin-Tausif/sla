@@ -20,6 +20,11 @@
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Tickets') }}
                     </x-nav-link>
+                    @can('tickets.import')
+                        <x-nav-link :href="route('imports.index')" :active="request()->routeIs('imports.*')">
+                            {{ __('Import') }}
+                        </x-nav-link>
+                    @endcan
                     <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
                         {{ __('Notifications') }}
                         @if (Auth::user()->unreadNotifications()->count())
@@ -86,6 +91,11 @@
             <x-responsive-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                 {{ __('Tickets') }}
             </x-responsive-nav-link>
+            @can('tickets.import')
+                <x-responsive-nav-link :href="route('imports.index')" :active="request()->routeIs('imports.*')">
+                    {{ __('Import') }}
+                </x-responsive-nav-link>
+            @endcan
             <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
                 {{ __('Notifications') }}
             </x-responsive-nav-link>

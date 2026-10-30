@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketAssignmentController;
@@ -29,6 +30,12 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
+    Route::get('/imports/create', [ImportController::class, 'create'])->name('imports.create');
+    Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');
+    Route::get('/imports/template', [ImportController::class, 'template'])->name('imports.template');
+    Route::get('/imports/{importBatch}/errors', [ImportController::class, 'errors'])->name('imports.errors');
+    Route::get('/imports/{importBatch}', [ImportController::class, 'show'])->name('imports.show');
     Route::resource('tickets', TicketController::class)->except('destroy');
 
     Route::post('/tickets/{ticket}/replies', [TicketReplyController::class, 'store'])

@@ -49,3 +49,17 @@ it('keeps working beyond six digits', function () {
 
     expect((new TicketNumberGenerator)->generate())->toBe('TKT-2026-1000000');
 });
+
+it('reserves consecutive ticket number blocks', function () {
+    $generator = new TicketNumberGenerator;
+
+    expect($generator->reserveBlock(2026, 3))->toBe([
+        'TKT-2026-000001',
+        'TKT-2026-000002',
+        'TKT-2026-000003',
+    ])->and($generator->generate())->toBe('TKT-2026-000004')
+        ->and($generator->reserveBlock(2027, 2))->toBe([
+            'TKT-2027-000001',
+            'TKT-2027-000002',
+        ]);
+});

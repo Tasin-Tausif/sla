@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\ImportBatch;
 use App\Models\Ticket;
+use App\Policies\ImportBatchPolicy;
 use App\Policies\TicketPolicy;
 use App\Services\Sla\SlaCalculator;
 use App\Services\Sla\SlaConfigLoader;
@@ -28,5 +30,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Ticket::class, TicketPolicy::class);
+        Gate::policy(ImportBatch::class, ImportBatchPolicy::class);
     }
 }
