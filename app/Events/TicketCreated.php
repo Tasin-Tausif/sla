@@ -3,10 +3,11 @@
 namespace App\Events;
 
 use App\Models\Ticket;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TicketCreated
+class TicketCreated implements ShouldDispatchAfterCommit
 {
     use Dispatchable, SerializesModels;
 

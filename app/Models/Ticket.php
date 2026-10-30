@@ -164,10 +164,7 @@ class Ticket extends Model
 
     public function scopeOpenForSla(Builder $query): Builder
     {
-        return $query->whereNotIn('status', [
-            TicketStatus::Resolved->value,
-            TicketStatus::Closed->value,
-        ]);
+        return $query->whereIn('status', TicketStatus::activeValues());
     }
 
     public function scopeWithinSla(Builder $query): Builder
@@ -225,6 +222,29 @@ class Ticket extends Model
         return $this->isActive()
             && $this->sla_due_at !== null
             && $this->sla_due_at->isPast();
+    }
+
+    /**
+     * The SLA state used by the badges, mirroring scopeWithinSla(),
+     * scopeApproachingSla() and scopeBreachedSla().
+     *
+     * within | approaching | breached | resolved
+     */
+    public function slaState(): string
+    {
+        if (! $this->isActive()) {
+            return 'resolved';
+        }
+
+        if ($this->sla_due_at !== null && $this->sla_due_at->isPast()) {
+            return 'breached';
+        }
+
+        if ($this->sla_warning_at !== null && $this->sla_warning_at->lte(now())) {
+            return 'approaching';
+        }
+
+        return 'within';
     }
 
     /**

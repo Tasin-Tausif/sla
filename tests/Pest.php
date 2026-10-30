@@ -1,6 +1,10 @@
 <?php
 
+use App\Services\Sla\SlaConfigLoader;
+use Database\Seeders\BusinessHoursSeeder;
+use Database\Seeders\CategorySeeder;
 use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\SlaPolicySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,6 +25,17 @@ pest()->extend(TestCase::class)
         $this->seed(RolePermissionSeeder::class);
     })
     ->in('Feature');
+
+pest()->beforeEach(function (): void {
+    $this->seed([
+        RolePermissionSeeder::class,
+        CategorySeeder::class,
+        SlaPolicySeeder::class,
+        BusinessHoursSeeder::class,
+    ]);
+
+    SlaConfigLoader::forget();
+})->in('Feature/Tickets');
 
 /*
 |--------------------------------------------------------------------------

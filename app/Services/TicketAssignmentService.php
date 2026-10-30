@@ -83,7 +83,7 @@ class TicketAssignmentService
             throw new InvalidArgumentException('The target user must have the agent role.');
         }
 
-        DB::transaction(function () use ($ticket, $agent, $actor): void {
+        $changed = DB::transaction(function () use ($ticket, $agent, $actor): bool {
             $locked = Ticket::query()
                 ->whereKey($ticket->id)
                 ->lockForUpdate()
@@ -95,7 +95,7 @@ class TicketAssignmentService
                 : TicketStatus::from($locked->status);
 
             if ($oldAgentId === $agent->id) {
-                return;
+                return false;
             }
 
             if ($oldAgentId !== null) {
@@ -141,16 +141,21 @@ class TicketAssignmentService
                     ],
                 ],
             );
+
+            return true;
         });
 
         $ticket->refresh();
+
+        if ($changed) {
+            TicketAssigned::dispatch($ticket, $agent);
+        }
     }
 
     public function autoAssign(Ticket $ticket): bool
     {
         return DB::transaction(function () use ($ticket): bool {
-            $resolved = TicketStatus::Resolved->value;
-            $closed = TicketStatus::Closed->value;
+            $activeStatuses = TicketStatus::activeValues();
 
             $agent = User::query()
                 ->role('agent')
@@ -160,12 +165,15 @@ class TicketAssignmentService
                     Ticket::query()
                         ->selectRaw('count(*)')
                         ->whereColumn('tickets.assigned_agent_id', 'users.id')
-                        ->whereNotIn('status', [$resolved, $closed]),
+                        ->whereIn('status', $activeStatuses),
                     'open_count',
                 )
                 ->whereRaw(
-                    '(select count(*) from tickets where tickets.assigned_agent_id = users.id and tickets.status not in (?, ?)) < users.max_open_tickets',
-                    [$resolved, $closed],
+                    sprintf(
+                        '(select count(*) from tickets where tickets.assigned_agent_id = users.id and tickets.status in (%s)) < users.max_open_tickets',
+                        implode(', ', array_fill(0, count($activeStatuses), '?')),
+                    ),
+                    $activeStatuses,
                 )
                 ->orderBy('open_count')
                 ->orderByRaw('users.last_assigned_at IS NULL DESC')

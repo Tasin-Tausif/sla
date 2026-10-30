@@ -41,5 +41,5 @@ test('newly registered users get the customer role and can open the ticket scree
 
     $this->get(route('tickets.index'))
         ->assertOk()
-        ->assertSee('No tickets found.');
+        ->assertSee('No active tickets found.');
 });

@@ -65,7 +65,7 @@ class TicketPolicy
         return $user->hasPermissionTo('tickets.accept')
             && $user->hasRole('agent')
             && $ticket->assigned_agent_id === null
-            && ! in_array($this->statusOf($ticket), [TicketStatus::Resolved, TicketStatus::Closed], true);
+            && $this->statusOf($ticket)->isActive();
     }
 
     public function assign(User $user, Ticket $ticket): bool
