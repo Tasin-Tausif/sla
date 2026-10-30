@@ -20,25 +20,13 @@
                             <x-input-error class="mt-2" :messages="$errors->get('subject')" />
                         </div>
 
-                        <div>
-                            <x-input-label for="category_id" :value="__('Category')" />
-                            <select id="category_id" name="category_id"
-                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" @selected((int) old('category_id', $ticket->category_id) === $category->id)>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
-                        </div>
+                        <x-form.field name="category_id" :label="__('Category')" :required="true">
+                            <x-form.select name="category_id" :options="$categories->pluck('name', 'id')->all()" :selected="$ticket->category_id" required />
+                        </x-form.field>
 
-                        <div>
-                            <x-input-label for="description" :value="__('Description')" />
-                            <textarea id="description" name="description" rows="10" required
-                                      class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description', $ticket->description) }}</textarea>
-                            <x-input-error class="mt-2" :messages="$errors->get('description')" />
-                        </div>
+                        <x-form.field name="description" :label="__('Description')" :required="true">
+                            <x-form.textarea name="description" :value="$ticket->description" rows="10" required />
+                        </x-form.field>
 
                         <div class="flex items-center space-x-4">
                             <x-primary-button>{{ __('Save Changes') }}</x-primary-button>

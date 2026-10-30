@@ -5,7 +5,7 @@
             @if (auth()->user()->unreadNotifications()->exists())
                 <form method="POST" action="{{ route('notifications.read-all') }}">
                     @csrf
-                    <button class="text-sm text-indigo-600 hover:text-indigo-900">{{ __('Mark all as read') }}</button>
+                    <x-button type="submit" variant="secondary" size="sm" class="normal-case shadow-none border-0 text-sm text-indigo-600 hover:text-indigo-900">{{ __('Mark all as read') }}</x-button>
                 </form>
             @endif
         </div>
@@ -18,11 +18,11 @@
                     <form method="POST" action="{{ route('notifications.read', $notification->id) }}"
                           class="block px-6 py-4 {{ $notification->read_at === null ? 'bg-indigo-50' : '' }}">
                         @csrf
-                        <button class="block w-full text-left">
+                        <x-button type="submit" variant="secondary" class="block w-full text-left normal-case shadow-none border-0">
                             <div class="font-medium text-gray-900">{{ $notification->data['ticket_number'] ?? __('Ticket notification') }}</div>
                             <div class="text-sm text-gray-600">{{ $notification->data['message'] ?? '' }}</div>
                             <div class="text-xs text-gray-500 mt-1">{{ $notification->created_at->format('d M Y, h:i A') }}</div>
-                        </button>
+                        </x-button>
                     </form>
                 @empty
                     <p class="px-6 py-8 text-gray-600">{{ __('No notifications yet.') }}</p>

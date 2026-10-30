@@ -14,7 +14,7 @@
                 <div class="flex justify-between"><span>{{ $batch->status->label() }}</span><span>{{ $batch->total_rows ? round($batch->processed_rows / $batch->total_rows * 100) : 0 }}%</span></div>
                 <div class="mt-2 h-3 rounded bg-gray-100"><div class="h-3 rounded bg-indigo-600" style="width: {{ $batch->total_rows ? ($batch->processed_rows / $batch->total_rows) * 100 : 0 }}%"></div></div>
                 @if ($batch->failed_rows > 0)
-                    <a class="mt-4 inline-block text-indigo-600" href="{{ route('imports.errors', $batch) }}">{{ __('Download errors CSV') }}</a>
+                    <x-button href="{{ route('imports.errors', $batch) }}" variant="secondary" size="sm" class="mt-4">{{ __('Download errors CSV') }}</x-button>
                 @endif
             </div>
             <div class="overflow-x-auto rounded-lg bg-white shadow-sm">

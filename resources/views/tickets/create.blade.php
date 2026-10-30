@@ -20,54 +20,26 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <x-input-label for="category_id" :value="__('Category')" />
-                                <select id="category_id" name="category_id"
-                                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}" @selected((int) old('category_id') === $category->id)>
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
-                            </div>
+                            <x-form.field name="category_id" :label="__('Category')" :required="true">
+                                <x-form.select name="category_id" :options="$categories->pluck('name', 'id')->all()" :selected="old('category_id')" required />
+                            </x-form.field>
 
-                            <div>
-                                <x-input-label for="priority" :value="__('Priority')" />
-                                <select id="priority" name="priority"
-                                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    @foreach (App\Enums\TicketPriority::cases() as $priority)
-                                        <option value="{{ $priority->value }}" @selected(old('priority', App\Enums\TicketPriority::Medium->value) === $priority->value)>
-                                            {{ $priority->label() }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('priority')" />
-                            </div>
+                            <x-form.field name="priority" :label="__('Priority')" :required="true">
+                                <x-form.select name="priority" :options="\App\Enums\TicketPriority::options()" :selected="\App\Enums\TicketPriority::Medium->value" required />
+                            </x-form.field>
                         </div>
 
-                        <div>
-                            <x-input-label for="description" :value="__('Description')" />
-                            <textarea id="description" name="description" rows="8" required
-                                      class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description') }}</textarea>
-                            <x-input-error class="mt-2" :messages="$errors->get('description')" />
-                        </div>
+                        <x-form.field name="description" :label="__('Description')" :required="true">
+                            <x-form.textarea name="description" rows="8" required />
+                        </x-form.field>
 
-                        <div>
-                            <x-input-label for="attachments" :value="__('Attachments')" />
-                            <input id="attachments" name="attachments[]" type="file" multiple
-                                   class="mt-1 block w-full text-sm text-gray-600" />
-                            <p class="mt-2 text-xs text-gray-500">
-                                {{ __('Up to :max files, :mb MB each (:types).', [
+                        <x-form.field name="attachments" :label="__('Attachments')" :hint="__('Up to :max files, :mb MB each (:types).', [
                                     'max' => config('tickets.attachments.max_files'),
                                     'mb' => (int) ceil(config('tickets.attachments.max_kb') / 1024),
                                     'types' => implode(', ', config('tickets.attachments.mimes')),
-                                ]) }}
-                            </p>
-                            <x-input-error class="mt-2" :messages="$errors->get('attachments')" />
-                            <x-input-error class="mt-2" :messages="$errors->get('attachments.*')" />
-                        </div>
+                                ])">
+                            <x-form.file name="attachments" :multiple="true" />
+                        </x-form.field>
 
                         <div class="flex items-center space-x-4">
                             <x-primary-button>{{ __('Create Ticket') }}</x-primary-button>

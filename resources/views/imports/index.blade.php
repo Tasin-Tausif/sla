@@ -4,7 +4,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
             <div class="flex justify-between">
                 <h3 class="text-lg font-medium text-gray-900">{{ __('Import batches') }}</h3>
-                <a href="{{ route('imports.create') }}" class="text-indigo-600">{{ __('New import') }}</a>
+                <x-button href="{{ route('imports.create') }}" size="sm">{{ __('New import') }}</x-button>
             </div>
             <div class="overflow-x-auto rounded-lg bg-white shadow-sm">
                 <table class="min-w-full divide-y divide-gray-200">

@@ -44,4 +44,9 @@ enum TicketStatus: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    public static function options(): array
+    {
+        return array_combine(self::values(), array_map(fn (self $status): string => $status->label(), self::cases()));
+    }
 }

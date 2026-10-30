@@ -6,10 +6,9 @@
             </h2>
 
             @can('create', App\Models\Ticket::class)
-                <a href="{{ route('tickets.create') }}"
-                   class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <x-button href="{{ route('tickets.create') }}">
                     {{ __('New Ticket') }}
-                </a>
+                </x-button>
             @endcan
         </div>
     </x-slot>
@@ -17,14 +16,12 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('tickets.index', ['view' => 'active']) }}"
-                   class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                <x-button href="{{ route('tickets.index', ['view' => 'active']) }}" variant="secondary" class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
                     {{ __('Active') }}
-                </a>
-                <a href="{{ route('tickets.index', ['view' => 'closed']) }}"
-                   class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'closed' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                </x-button>
+                <x-button href="{{ route('tickets.index', ['view' => 'closed']) }}" variant="secondary" class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'closed' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
                     {{ __('Closed') }}
-                </a>
+                </x-button>
             </div>
 
             <form method="GET" action="{{ route('tickets.index') }}" class="bg-white p-4 shadow-sm sm:rounded-lg">
@@ -37,39 +34,19 @@
                     </div>
                     <div>
                         <x-input-label for="status" :value="__('Status')" />
-                        <select id="status" name="status" class="mt-1 block w-full rounded-md border-gray-300">
-                            <option value="">All statuses</option>
-                            @foreach (\App\Enums\TicketStatus::cases() as $status)
-                                <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
-                            @endforeach
-                        </select>
+                        <x-form.select name="status" :options="\App\Enums\TicketStatus::options()" placeholder="All statuses" :selected="request('status')" class="mt-1 block w-full" />
                     </div>
                     <div>
                         <x-input-label for="priority" :value="__('Priority')" />
-                        <select id="priority" name="priority" class="mt-1 block w-full rounded-md border-gray-300">
-                            <option value="">All priorities</option>
-                            @foreach (\App\Enums\TicketPriority::cases() as $priority)
-                                <option value="{{ $priority->value }}" @selected(request('priority') === $priority->value)>{{ $priority->label() }}</option>
-                            @endforeach
-                        </select>
+                        <x-form.select name="priority" :options="\App\Enums\TicketPriority::options()" placeholder="All priorities" :selected="request('priority')" class="mt-1 block w-full" />
                     </div>
                     <div>
                         <x-input-label for="category_id" :value="__('Category')" />
-                        <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-gray-300">
-                            <option value="">All categories</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-form.select name="category_id" :options="$categories->pluck('name', 'id')->all()" placeholder="All categories" :selected="request('category_id')" class="mt-1 block w-full" />
                     </div>
                     <div>
                         <x-input-label for="sla_status" :value="__('SLA status')" />
-                        <select id="sla_status" name="sla_status" class="mt-1 block w-full rounded-md border-gray-300">
-                            <option value="">All SLA statuses</option>
-                            @foreach (['within' => 'Within SLA', 'approaching' => 'Approaching', 'breached' => 'Breached'] as $value => $label)
-                                <option value="{{ $value }}" @selected(request('sla_status') === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <x-form.select name="sla_status" :options="['within' => 'Within SLA', 'approaching' => 'Approaching', 'breached' => 'Breached']" placeholder="All SLA statuses" :selected="request('sla_status')" class="mt-1 block w-full" />
                     </div>
                     <div>
                         <x-input-label for="date_from" :value="__('Created from')" />
@@ -82,13 +59,7 @@
                     @if ($isStaff)
                         <div>
                             <x-input-label for="assigned_agent_id" :value="__('Assigned agent')" />
-                            <select id="assigned_agent_id" name="assigned_agent_id" class="mt-1 block w-full rounded-md border-gray-300">
-                                <option value="">Any assignee</option>
-                                <option value="unassigned" @selected(request('assigned_agent_id') === 'unassigned')>Unassigned</option>
-                                @foreach ($agents as $agent)
-                                    <option value="{{ $agent->id }}" @selected((string) request('assigned_agent_id') === (string) $agent->id)>{{ $agent->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-form.select name="assigned_agent_id" :options="['unassigned' => 'Unassigned'] + $agents->pluck('name', 'id')->all()" placeholder="Any assignee" :selected="request('assigned_agent_id')" class="mt-1 block w-full" />
                         </div>
                         <div>
                             <x-input-label for="customer" :value="__('Customer')" />
@@ -98,7 +69,7 @@
                 </div>
                 <div class="mt-4 flex items-center gap-3">
                     <x-primary-button>{{ __('Filter') }}</x-primary-button>
-                    <a href="{{ route('tickets.index', ['view' => $view]) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Reset') }}</a>
+                    <x-button href="{{ route('tickets.index', ['view' => $view]) }}" variant="secondary" size="sm">{{ __('Reset') }}</x-button>
                 </div>
             </form>
 

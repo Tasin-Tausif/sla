@@ -6,10 +6,9 @@
             </h2>
 
             @can('update', $ticket)
-                <a href="{{ route('tickets.edit', $ticket) }}"
-                   class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <x-button href="{{ route('tickets.edit', $ticket) }}" variant="secondary">
                     {{ __('Edit') }}
-                </a>
+                </x-button>
             @endcan
         </div>
     </x-slot>
@@ -81,15 +80,7 @@
                             @csrf
                             <div>
                                 <x-input-label for="agent_id" :value="__('Assign to')" />
-                                <select id="agent_id" name="agent_id" required
-                                        class="mt-1 block w-56 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    @foreach ($agents as $agent)
-                                        <option value="{{ $agent->id }}" @selected($ticket->assigned_agent_id === $agent->id)>
-                                            {{ $agent->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('agent_id')" />
+                                <x-form.select name="agent_id" :options="$agents->pluck('name', 'id')->all()" :selected="$ticket->assigned_agent_id" class="mt-1 block w-56" required />
                             </div>
                             <x-primary-button>{{ __('Assign') }}</x-primary-button>
                         </form>
@@ -118,13 +109,7 @@
                             @method('PATCH')
                             <div>
                                 <x-input-label for="status" :value="__('Status')" />
-                                <select id="status" name="status" required
-                                        class="mt-1 block w-56 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    @foreach ($statusOptions as $status)
-                                        <option value="{{ $status->value }}">{{ $status->label() }}</option>
-                                    @endforeach
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('status')" />
+                                <x-form.select name="status" :options="$statusOptions->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" class="mt-1 block w-56" required />
                             </div>
                             <x-secondary-button type="submit">{{ __('Update Status') }}</x-secondary-button>
                         </form>
@@ -136,15 +121,7 @@
                             @method('PATCH')
                             <div>
                                 <x-input-label for="priority" :value="__('Priority')" />
-                                <select id="priority" name="priority" required
-                                        class="mt-1 block w-44 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    @foreach (App\Enums\TicketPriority::cases() as $priority)
-                                        <option value="{{ $priority->value }}" @selected($ticket->priority === $priority)>
-                                            {{ $priority->label() }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error class="mt-2" :messages="$errors->get('priority')" />
+                                <x-form.select name="priority" :options="App\Enums\TicketPriority::options()" :selected="$ticket->priority->value" class="mt-1 block w-44" required />
                             </div>
                             <x-secondary-button type="submit">{{ __('Update Priority') }}</x-secondary-button>
                         </form>
@@ -229,33 +206,21 @@
 
                         <div>
                             <x-input-label for="body" :value="__('Your reply')" />
-                            <textarea id="body" name="body" rows="5" required
-                                      class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('body') }}</textarea>
-                            <x-input-error class="mt-2" :messages="$errors->get('body')" />
+                            <x-form.textarea name="body" rows="5" required />
                         </div>
 
                         @can('addInternalNote', $ticket)
-                            <label class="flex items-center space-x-2 text-sm text-gray-700">
-                                <input type="hidden" name="is_internal" value="0">
-                                <input type="checkbox" name="is_internal" value="1" @checked(old('is_internal'))
-                                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                                <span>{{ __('Mark as internal note (staff only)') }}</span>
-                            </label>
+                            <input type="hidden" name="is_internal" value="0">
+                            <x-form.checkbox name="is_internal" :label="__('Mark as internal note (staff only)')" />
                         @endcan
 
                         <div>
                             <x-input-label for="reply-attachments" :value="__('Attachments')" />
-                            <input id="reply-attachments" name="attachments[]" type="file" multiple
-                                   class="mt-1 block w-full text-sm text-gray-600" />
-                            <p class="mt-2 text-xs text-gray-500">
-                                {{ __('Up to :max files, :mb MB each; allowed: :types.', [
+                            <x-form.file name="attachments" :multiple="true" :hint="__('Up to :max files, :mb MB each; allowed: :types.', [
                                     'max' => config('tickets.attachments.max_files'),
                                     'mb' => (int) ceil(config('tickets.attachments.max_kb') / 1024),
                                     'types' => implode(', ', config('tickets.attachments.mimes')),
-                                ]) }}
-                            </p>
-                            <x-input-error class="mt-2" :messages="$errors->get('attachments')" />
-                            <x-input-error class="mt-2" :messages="$errors->get('attachments.*')" />
+                                ])" id="reply-attachments" />
                         </div>
 
                         <x-primary-button>{{ __('Send Reply') }}</x-primary-button>

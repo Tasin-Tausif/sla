@@ -26,4 +26,9 @@ enum TicketPriority: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    public static function options(): array
+    {
+        return array_combine(self::values(), array_map(fn (self $priority): string => $priority->label(), self::cases()));
+    }
 }
