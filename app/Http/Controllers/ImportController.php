@@ -6,10 +6,12 @@ use App\Enums\ImportStatus;
 use App\Http\Requests\StoreImportRequest;
 use App\Jobs\ProcessTicketImport;
 use App\Models\ImportBatch;
+use App\Support\UploadedFileStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use League\Csv\Writer;
 
@@ -38,23 +40,39 @@ class ImportController extends Controller
     {
         $file = $request->file('file');
         $required = config('imports.required_columns');
-        $stream = fopen($file->getRealPath(), 'rb');
-        $headers = fgetcsv($stream) ?: [];
-        fclose($stream);
+        $disk = (string) config('imports.disk');
+        $storedPath = UploadedFileStorage::store($file, 'imports', $disk, 'file');
+        $stream = Storage::disk($disk)->readStream($storedPath);
+
+        if ($stream === false) {
+            UploadedFileStorage::delete($disk, [$storedPath]);
+
+            return back()
+                ->withInput()
+                ->withErrors(['file' => 'The uploaded file could not be read.']);
+        }
+
+        try {
+            $headers = fgetcsv($stream) ?: [];
+        } finally {
+            fclose($stream);
+        }
+
         $headers = array_map(fn (string $header): string => strtolower(trim(ltrim($header, "\xEF\xBB\xBF"))), $headers);
         $missing = array_values(array_diff($required, $headers));
 
         if ($missing !== []) {
+            UploadedFileStorage::delete($disk, [$storedPath]);
+
             return back()
                 ->withInput()
                 ->withErrors(['file' => 'Missing required columns: '.implode(', ', $missing)]);
         }
 
-        $path = $file->store('imports', config('imports.disk'));
         $batch = ImportBatch::create([
             'user_id' => $request->user()->id,
             'original_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
+            'file_path' => $storedPath,
             'status' => ImportStatus::Pending,
         ]);
 

@@ -9,6 +9,7 @@
                     <div>
                         <x-input-label for="file" :value="__('CSV file')" />
                         <input id="file" name="file" type="file" accept=".csv,.txt" class="mt-1 block w-full rounded-md border-gray-300">
+                        <p class="mt-2 text-xs text-gray-500">{{ __('CSV up to :mb MB.', ['mb' => (int) ceil(config('imports.max_upload_kb') / 1024)]) }}</p>
                         <x-input-error :messages="$errors->get('file')" class="mt-2" />
                     </div>
                     <x-primary-button>{{ __('Start import') }}</x-primary-button>

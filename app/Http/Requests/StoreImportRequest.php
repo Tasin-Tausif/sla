@@ -22,4 +22,12 @@ class StoreImportRequest extends FormRequest
             ],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'file.max' => 'The CSV file must be no larger than '.(int) ceil(config('imports.max_upload_kb') / 1024).' MB.',
+            'file.mimes' => 'The file must be a CSV or TXT file.',
+        ];
+    }
 }

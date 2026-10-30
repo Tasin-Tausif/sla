@@ -26,20 +26,24 @@ abstract class TicketNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $path = route('tickets.show', $this->ticket, false);
+
         return [
             'ticket_id' => $this->ticket->id,
             'ticket_number' => $this->ticket->ticket_number,
             'message' => $this->message(),
-            'url' => route('tickets.show', $this->ticket),
+            'url' => $path,
         ];
     }
 
     protected function mail(): MailMessage
     {
+        $path = route('tickets.show', $this->ticket, false);
+
         return (new MailMessage)
             ->subject($this->subject())
             ->line($this->message())
-            ->action('View ticket', route('tickets.show', $this->ticket));
+            ->action('View ticket', url($path));
     }
 
     /**

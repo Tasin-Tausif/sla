@@ -8,9 +8,11 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Support\UploadedFileStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class TicketReplyService
 {
@@ -27,45 +29,53 @@ class TicketReplyService
     public function add(Ticket $ticket, User $author, string $body, bool $isInternal, array $files = []): TicketReply
     {
         return DB::transaction(function () use ($ticket, $author, $body, $isInternal, $files): TicketReply {
-            $reply = TicketReply::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => $author->id,
-                'body' => $body,
-                'is_internal' => $isInternal,
-            ]);
+            $storedPaths = [];
 
-            $attachmentCount = $this->storeFiles($ticket, $author, $files, $reply->id);
+            try {
+                $reply = TicketReply::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $author->id,
+                    'body' => $body,
+                    'is_internal' => $isInternal,
+                ]);
 
-            if (! $isInternal && $this->recordsFirstResponse($ticket, $author)) {
-                $ticket->first_response_at = now();
-                $ticket->save();
-            }
+                $attachmentCount = $this->storeFiles($ticket, $author, $files, $storedPaths, $reply->id);
 
-            $this->logger->log(
-                $ticket,
-                $isInternal ? 'note_added' : 'replied',
-                $isInternal ? 'Internal note added' : 'Reply added',
-                $author,
-                ['is_internal' => $isInternal],
-            );
+                if (! $isInternal && $this->recordsFirstResponse($ticket, $author)) {
+                    $ticket->first_response_at = now();
+                    $ticket->save();
+                }
 
-            if ($attachmentCount > 0) {
                 $this->logger->log(
                     $ticket,
-                    'attachment_added',
-                    'Attachments added',
+                    $isInternal ? 'note_added' : 'replied',
+                    $isInternal ? 'Internal note added' : 'Reply added',
                     $author,
-                    ['count' => $attachmentCount, 'reply_id' => $reply->id],
+                    ['is_internal' => $isInternal],
                 );
+
+                if ($attachmentCount > 0) {
+                    $this->logger->log(
+                        $ticket,
+                        'attachment_added',
+                        'Attachments added',
+                        $author,
+                        ['count' => $attachmentCount, 'reply_id' => $reply->id],
+                    );
+                }
+
+                if (! $isInternal) {
+                    TicketReplied::dispatch($ticket, $reply);
+
+                    $this->applyCustomerStatusTransition($ticket, $author);
+                }
+
+                return $reply;
+            } catch (Throwable $exception) {
+                UploadedFileStorage::delete((string) config('tickets.attachments.disk'), $storedPaths);
+
+                throw $exception;
             }
-
-            if (! $isInternal) {
-                TicketReplied::dispatch($ticket, $reply);
-
-                $this->applyCustomerStatusTransition($ticket, $author);
-            }
-
-            return $reply;
         });
     }
 
@@ -81,16 +91,24 @@ class TicketReplyService
         }
 
         DB::transaction(function () use ($ticket, $uploader, $files): void {
-            $attachmentCount = $this->storeFiles($ticket, $uploader, $files);
+            $storedPaths = [];
 
-            if ($attachmentCount > 0) {
-                $this->logger->log(
-                    $ticket,
-                    'attachment_added',
-                    'Attachments added',
-                    $uploader,
-                    ['count' => $attachmentCount],
-                );
+            try {
+                $attachmentCount = $this->storeFiles($ticket, $uploader, $files, $storedPaths);
+
+                if ($attachmentCount > 0) {
+                    $this->logger->log(
+                        $ticket,
+                        'attachment_added',
+                        'Attachments added',
+                        $uploader,
+                        ['count' => $attachmentCount],
+                    );
+                }
+            } catch (Throwable $exception) {
+                UploadedFileStorage::delete((string) config('tickets.attachments.disk'), $storedPaths);
+
+                throw $exception;
             }
         });
     }
@@ -130,27 +148,26 @@ class TicketReplyService
     /**
      * @param  array<int, UploadedFile>  $files
      */
-    private function storeFiles(Ticket $ticket, User $uploader, array $files, ?int $replyId = null): int
+    private function storeFiles(Ticket $ticket, User $uploader, array $files, array &$storedPaths, ?int $replyId = null): int
     {
         $disk = (string) config('tickets.attachments.disk');
         $count = 0;
 
         foreach ($files as $file) {
-            $storedPath = $file->store("tickets/{$ticket->id}", $disk);
-
-            if (! is_string($storedPath) || $storedPath === '') {
-                throw new RuntimeException("Unable to store the attachment for ticket [{$ticket->id}].");
-            }
+            $storedPath = UploadedFileStorage::store($file, "tickets/{$ticket->id}", $disk, 'attachments');
+            $storedPaths[] = $storedPath;
+            $originalName = preg_replace('/[\x00-\x1F\x7F]/', '', basename($file->getClientOriginalName()));
+            $originalName = mb_substr($originalName ?: 'attachment', 0, 255);
 
             Attachment::create([
                 'ticket_id' => $ticket->id,
                 'reply_id' => $replyId,
                 'uploaded_by' => $uploader->id,
-                'original_name' => $file->getClientOriginalName(),
+                'original_name' => $originalName,
                 'stored_path' => $storedPath,
                 'disk' => $disk,
-                'mime_type' => (string) $file->getMimeType(),
-                'size' => (int) $file->getSize(),
+                'mime_type' => (string) Storage::disk($disk)->mimeType($storedPath),
+                'size' => (int) Storage::disk($disk)->size($storedPath),
             ]);
 
             $count++;

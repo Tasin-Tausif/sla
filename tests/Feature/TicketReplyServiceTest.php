@@ -93,7 +93,7 @@ it('stores uploaded files under a random name on the private disk', function () 
     $agent = replyUser('agent');
     $ticket = Ticket::factory()->create(['created_by' => $customer->id]);
 
-    $file = UploadedFile::fake()->create('quarterly-report.pdf', 120, 'application/pdf');
+    $file = UploadedFile::fake()->createWithContent('quarterly-report.pdf', str_repeat('x', 120 * 1024));
 
     $reply = replyService()->add($ticket, $agent, 'The report is attached.', false, [$file]);
 

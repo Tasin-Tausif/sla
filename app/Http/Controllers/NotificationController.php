@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
@@ -27,6 +29,23 @@ class NotificationController extends Controller
         $record = $request->user()->notifications()->findOrFail($notification);
         $record->markAsRead();
 
-        return redirect()->to($record->data['url'] ?? route('notifications.index'));
+        $data = $record->data;
+        $url = (string) ($data['url'] ?? '');
+        $parsed = parse_url($url);
+        $path = ($parsed['path'] ?? '').(isset($parsed['query']) ? '?'.$parsed['query'] : '');
+
+        if ($path === '' || ! str_starts_with($path, '/') || str_starts_with($path, '//')
+            || isset($parsed['scheme']) || isset($parsed['host'])) {
+            return to_route('notifications.index');
+        }
+
+        $ticket = isset($data['ticket_id']) ? Ticket::find($data['ticket_id']) : null;
+
+        if ($ticket === null || Gate::denies('view', $ticket)) {
+            return to_route('notifications.index')
+                ->with('status', 'You no longer have access to this ticket.');
+        }
+
+        return redirect()->to($path);
     }
 }

@@ -247,6 +247,13 @@
                             <x-input-label for="reply-attachments" :value="__('Attachments')" />
                             <input id="reply-attachments" name="attachments[]" type="file" multiple
                                    class="mt-1 block w-full text-sm text-gray-600" />
+                            <p class="mt-2 text-xs text-gray-500">
+                                {{ __('Up to :max files, :mb MB each; allowed: :types.', [
+                                    'max' => config('tickets.attachments.max_files'),
+                                    'mb' => (int) ceil(config('tickets.attachments.max_kb') / 1024),
+                                    'types' => implode(', ', config('tickets.attachments.mimes')),
+                                ]) }}
+                            </p>
                             <x-input-error class="mt-2" :messages="$errors->get('attachments')" />
                             <x-input-error class="mt-2" :messages="$errors->get('attachments.*')" />
                         </div>

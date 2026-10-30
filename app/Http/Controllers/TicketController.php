@@ -17,6 +17,7 @@ use App\Services\TicketService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -71,16 +72,20 @@ class TicketController extends Controller
     ): RedirectResponse {
         Gate::authorize('create', Ticket::class);
 
-        $ticket = $tickets->create(
-            $request->user(),
-            $request->safe()->only(['subject', 'description', 'priority', 'category_id']),
-        );
-
         $files = $request->file('attachments', []);
 
-        if ($files !== []) {
-            $replies->attachToTicket($ticket, $request->user(), $files);
-        }
+        $ticket = DB::transaction(function () use ($request, $tickets, $replies, $files): Ticket {
+            $ticket = $tickets->create(
+                $request->user(),
+                $request->safe()->only(['subject', 'description', 'priority', 'category_id']),
+            );
+
+            if ($files !== []) {
+                $replies->attachToTicket($ticket, $request->user(), $files);
+            }
+
+            return $ticket;
+        });
 
         try {
             $assignment->autoAssign($ticket);

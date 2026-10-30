@@ -5,15 +5,19 @@ namespace App\Jobs;
 use App\Enums\ImportStatus;
 use App\Models\ImportBatch;
 use App\Services\Import\TicketCsvImporter;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class ProcessTicketImport implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 1;
 
@@ -23,6 +27,9 @@ class ProcessTicketImport implements ShouldQueue
 
     public function handle(TicketCsvImporter $importer): void
     {
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
         $importer->process(ImportBatch::findOrFail($this->importBatchId));
     }
 
