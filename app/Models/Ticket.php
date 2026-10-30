@@ -17,6 +17,8 @@ use Spatie\Activitylog\Models\Activity;
 
 /**
  * @property Carbon $sla_warning_at Moment the ticket becomes "approaching SLA breach": start + resolution_minutes * warning_threshold_percent / 100, in business minutes.
+ *
+ * sla_breached_at only records that the breach was already escalated and notified (idempotency marker for the scheduler). It is never used to decide whether a ticket is currently breached.
  */
 class Ticket extends Model
 {
@@ -135,9 +137,29 @@ class Ticket extends Model
         return $query->whereNull('assigned_agent_id');
     }
 
-    public function scopeBreached(Builder $query): Builder
+    public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        return $query->whereNotNull('sla_breached_at');
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+
+        if ($user->hasRole('agent')) {
+            return $query->where(function (Builder $query) use ($user): void {
+                $query->whereNull('assigned_agent_id')
+                    ->orWhere('assigned_agent_id', $user->id);
+            });
+        }
+
+        if ($user->hasRole('customer')) {
+            return $query->where('created_by', $user->id);
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    public function visibleReplies(User $user): HasMany
+    {
+        return $this->replies()->visibleTo($user);
     }
 
     public function scopeOpenForSla(Builder $query): Builder
@@ -150,7 +172,7 @@ class Ticket extends Model
 
     public function scopeWithinSla(Builder $query): Builder
     {
-        return $this->scopeOpenForSla($query)
+        return $query->openForSla()
             ->where('sla_warning_at', '>', now());
     }
 
@@ -158,14 +180,14 @@ class Ticket extends Model
     {
         $now = now();
 
-        return $this->scopeOpenForSla($query)
+        return $query->openForSla()
             ->where('sla_warning_at', '<=', $now)
             ->where('sla_due_at', '>', $now);
     }
 
     public function scopeBreachedSla(Builder $query): Builder
     {
-        return $this->scopeOpenForSla($query)
+        return $query->openForSla()
             ->where('sla_due_at', '<', now());
     }
 
@@ -200,7 +222,9 @@ class Ticket extends Model
 
     public function isBreached(): bool
     {
-        return $this->sla_breached_at !== null;
+        return $this->isActive()
+            && $this->sla_due_at !== null
+            && $this->sla_due_at->isPast();
     }
 
     /**

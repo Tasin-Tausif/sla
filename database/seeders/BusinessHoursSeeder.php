@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Services\Sla\SlaConfigLoader;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -25,5 +26,7 @@ class BusinessHoursSeeder extends Seeder
                 ],
             );
         }
+
+        SlaConfigLoader::forget();
     }
 }

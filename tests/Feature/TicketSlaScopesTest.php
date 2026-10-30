@@ -141,3 +141,41 @@ it('combines open, approaching, breached and within SLA tickets correctly', func
         ->not->toContain($resolved->id)
         ->not->toContain($closed->id);
 });
+
+it('treats a past-due ticket as breached even when sla_breached_at is null', function () {
+    $ticket = Ticket::factory()->create([
+        'status' => TicketStatus::Open,
+        'sla_warning_at' => now()->subHours(3),
+        'sla_due_at' => now()->subHour(),
+        'sla_breached_at' => null,
+    ]);
+
+    expect(Ticket::breachedSla()->pluck('id')->all())->toBe([$ticket->id])
+        ->and($ticket->isBreached())->toBeTrue();
+});
+
+it('does not treat a resolved ticket past its due date as breached', function () {
+    $ticket = Ticket::factory()->create([
+        'status' => TicketStatus::Resolved,
+        'sla_warning_at' => now()->subHours(3),
+        'sla_due_at' => now()->subHour(),
+        'sla_breached_at' => null,
+    ]);
+
+    expect(Ticket::breachedSla()->pluck('id')->all())
+        ->not->toContain($ticket->id)
+        ->and($ticket->isBreached())->toBeFalse();
+});
+
+it('ignores the sla_breached_at marker when deciding if a resolved ticket is breached', function () {
+    $ticket = Ticket::factory()->create([
+        'status' => TicketStatus::Resolved,
+        'sla_warning_at' => now()->subHours(3),
+        'sla_due_at' => now()->subHour(),
+        'sla_breached_at' => now()->subMinutes(30),
+    ]);
+
+    expect(Ticket::breachedSla()->pluck('id')->all())
+        ->not->toContain($ticket->id)
+        ->and($ticket->isBreached())->toBeFalse();
+});

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TicketReply extends Model
 {
+    protected $touches = ['ticket'];
+
     protected $fillable = ['ticket_id', 'user_id', 'body', 'is_internal'];
 
     protected $casts = [

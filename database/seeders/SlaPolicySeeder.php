@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Services\Sla\SlaConfigLoader;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -28,5 +29,7 @@ class SlaPolicySeeder extends Seeder
                 ],
             );
         }
+
+        SlaConfigLoader::forget();
     }
 }

@@ -24,13 +24,9 @@ class RolePermissionSeeder extends Seeder
             'tickets.resolve',
             'tickets.close',
             'tickets.reopen',
-            'tickets.delete',
             'tickets.reply',
             'tickets.internal-note',
             'tickets.import',
-            'categories.manage',
-            'sla.manage',
-            'users.manage',
         ];
 
         foreach ($permissions as $permission) {
@@ -50,7 +46,6 @@ class RolePermissionSeeder extends Seeder
             'tickets.viewAny',
             'tickets.view',
             'tickets.update',
-            'tickets.assign',
             'tickets.accept',
             'tickets.resolve',
             'tickets.close',
@@ -64,6 +59,7 @@ class RolePermissionSeeder extends Seeder
             'tickets.viewAny',
             'tickets.view',
             'tickets.create',
+            'tickets.update',
             'tickets.reply',
         ]);
 

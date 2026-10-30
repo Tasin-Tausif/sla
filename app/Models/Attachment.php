@@ -37,6 +37,9 @@ class Attachment extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /**
+     * Eager load 'reply' before calling this in lists.
+     */
     public function isInternal(): bool
     {
         return (bool) $this->reply?->is_internal;

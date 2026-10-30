@@ -23,6 +23,15 @@ it('reloads the SLA config from a serializing cache store', function () {
         ->and($second)->toBeInstanceOf(SlaConfig::class)
         ->and($second->workingDays[0])->toBe(['start' => '09:00', 'end' => '18:00'])
         ->and($second->workingDays[5])->toBeNull()
+        ->and($second->workingDays[6])->toBeNull()
         ->and($second->policies)->toHaveKey('critical')
-        ->and($second->holidays)->toHaveCount(2);
+        ->and($second->holidays)->toHaveCount(12);
+});
+
+it('loads working hours from the seeded database in the calculator format', function () {
+    $config = SlaConfigLoader::load();
+
+    expect($config->workingDays[0])->toBe(['start' => '09:00', 'end' => '18:00'])
+        ->and($config->workingDays[5])->toBeNull()
+        ->and($config->workingDays[6])->toBeNull();
 });
