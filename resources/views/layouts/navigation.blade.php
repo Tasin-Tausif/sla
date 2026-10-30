@@ -18,6 +18,12 @@
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Tickets') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                        {{ __('Notifications') }}
+                        @if (Auth::user()->unreadNotifications()->count())
+                            <span class="ms-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">{{ Auth::user()->unreadNotifications()->count() }}</span>
+                        @endif
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -75,6 +81,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                 {{ __('Tickets') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                {{ __('Notifications') }}
             </x-responsive-nav-link>
         </div>
 

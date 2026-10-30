@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\TicketStatus;
+use App\Events\TicketReplied;
 use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketReply;
@@ -59,6 +60,8 @@ class TicketReplyService
             }
 
             if (! $isInternal) {
+                TicketReplied::dispatch($ticket, $reply);
+
                 $this->applyCustomerStatusTransition($ticket, $author);
             }
 

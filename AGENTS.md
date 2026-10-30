@@ -1,47 +1,22 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Support Ticket & SLA Management System
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Laravel 13 / PHP 8.3 / MySQL take-home assessment. Stack: Breeze (Blade + Tailwind), Pest 4, spatie/laravel-permission (roles: admin, agent, customer), spatie/laravel-activitylog v4, league/csv.
 
-## Prerequisites
+The design document is `support-ticket-erd.md` in the repo root. Read it, never edit it.
 
-Verify that PHP and Composer are available:
+## Rules for AI agents
+- Do NOT install Laravel Boost or run `boost:install`. Do not install any new packages and do not make network requests. Use only what is in `composer.json` and `vendor`.
+- Do not ask questions. Make reasonable assumptions and list them at the end.
+- Be economical: use targeted reads and searches, run focused tests per task, and run the full suite and `./vendor/bin/pint` once at the end.
+- Never commit real credentials.
 
-```sh
-php -v
-composer -V
-```
+## Conventions
+- Business logic lives in `app/Services`: TicketService, TicketReplyService, TicketAssignmentService, TicketActivityLogger, TicketNumberGenerator, Sla\SlaCalculator, Sla\SlaConfigLoader. Controllers are thin, validation is in Form Requests, authorization uses `Gate::authorize()` with `app/Policies/TicketPolicy.php`.
+- Enums live in `app/Enums` (TicketStatus, TicketPriority, ImportStatus). Never hardcode status or priority strings. Active statuses = `TicketStatus::activeValues()`.
+- Times are stored in UTC and displayed and SLA-calculated in Asia/Dhaka (`config('sla.timezone')`).
+- `sla_breached_at`, `sla_warning_sent_at` and `escalated_at` are idempotency markers set by the scheduler. They are never used to decide whether a ticket is currently breached (use the `breachedSla` / `approachingSla` scopes).
+- Internal notes must never reach customers: not in replies, activity timeline, notifications or emails.
+- Listeners are auto-discovered from `handle()` type hints. Do not register them manually.
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+## Testing
+- `./vendor/bin/pest` and `./vendor/bin/pint`. If MySQL is unavailable use `DB_CONNECTION=sqlite DB_DATABASE=:memory:` as an environment override only.

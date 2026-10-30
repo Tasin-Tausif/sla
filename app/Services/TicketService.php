@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Events\TicketCreated;
+use App\Events\TicketResolved;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Sla\SlaCalculator;
@@ -140,5 +141,9 @@ class TicketService
                 'new' => ['status' => $new->value],
             ],
         );
+
+        if ($new === TicketStatus::Resolved) {
+            TicketResolved::dispatch($ticket, $actor);
+        }
     }
 }
