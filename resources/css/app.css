@@ -26,6 +26,7 @@
     --color-info-soft: 224 242 254;
     --color-focus-ring: 99 102 241;
     --color-overlay: 17 24 39;
+    --gradient-brand: linear-gradient(135deg, rgb(31 41 55) 0%, rgb(55 65 81) 100%);
     --status-open: 37 99 235;
     --status-open-soft: 219 234 254;
     --status-in-progress: 79 70 229;

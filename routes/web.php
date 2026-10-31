@@ -13,8 +13,10 @@ use App\Http\Controllers\TicketStatusController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return auth()->check()
+        ? redirect()->route(auth()->user()->homeRoute())
+        : redirect()->route('login');
+})->name('home');
 
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])

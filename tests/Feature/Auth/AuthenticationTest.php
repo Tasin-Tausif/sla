@@ -5,7 +5,11 @@ use App\Models\User;
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
+    $response->assertOk()
+        ->assertSee(config('app.name'))
+        ->assertSee('name="email"', false)
+        ->assertSee('name="password"', false)
+        ->assertSee(route('register'));
 });
 
 test('users can authenticate using the login screen', function () {
@@ -38,4 +42,5 @@ test('users can logout', function () {
 
     $this->assertGuest();
     $response->assertRedirect('/');
+    $this->get('/')->assertRedirect(route('login'));
 });

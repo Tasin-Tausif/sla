@@ -2,7 +2,7 @@
 
 it('keeps Blade colours behind semantic theme tokens', function () {
     $pattern = '/(?:bg|text|border|ring|divide|placeholder|from|to|via|fill|stroke|outline|decoration|accent|caret|shadow)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b|(?:bg-white|bg-black|text-white|text-black)/';
-    $whitelist = ['welcome.blade.php' => 'Laravel vendor welcome page'];
+    $whitelist = [];
     $violations = [];
 
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views')));

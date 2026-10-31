@@ -71,6 +71,9 @@ export default {
                 card: 'var(--shadow-card)',
                 pop: 'var(--shadow-pop)',
             },
+            backgroundImage: {
+                brand: 'var(--gradient-brand)',
+            },
             maxWidth: {
                 shell: 'var(--container-max)',
             },
