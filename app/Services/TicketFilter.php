@@ -47,8 +47,7 @@ class TicketFilter
                     ->where(function ($subquery) use ($escaped): void {
                         $subquery->where('name', 'like', "%{$escaped}%")
                             ->orWhere('email', 'like', "%{$escaped}%");
-                    })
-                    ->limit(50);
+                    });
             });
         }
 

@@ -126,7 +126,7 @@
                                     ->mapWithKeys(fn($status) => [$status->value => $status->label()])
                                     ->all()" class="mt-1 block w-56" required />
                             </div>
-                            <x-secondary-button type="submit">{{ __('Update Status') }}</x-secondary-button>
+                            <x-button variant="success" type="submit">{{ __('Update Status') }}</x-button>
                         </form>
                     @endif
 
@@ -140,7 +140,7 @@
                                 <x-form.select name="priority" :options="App\Enums\TicketPriority::options()" :selected="$ticket->priority->value" class="mt-1 block w-44"
                                     required />
                             </div>
-                            <x-secondary-button type="submit">{{ __('Update Priority') }}</x-secondary-button>
+                            <x-button variant="warning" type="submit">{{ __('Update Priority') }}</x-button>
                         </form>
                     @endcan
                 </div>
@@ -275,7 +275,7 @@
                                     @if ($activity->properties->has('old'))
                                         <div class="mt-1 text-xs text-content-muted">
                                             @foreach ((array) $activity->properties->get('old') as $key => $from)
-                                                {{ $key }}: {{ $from }} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢
+                                                {{ $key }}: {{ $from }} to
                                                 {{ $activity->properties->get('new', [])[$key] ?? '' }}<br>
                                             @endforeach
                                         </div>
