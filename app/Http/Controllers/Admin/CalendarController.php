@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateBusinessHoursRequest;
 use App\Models\BusinessHour;
 use App\Models\Holiday;
 use App\Services\Admin\ConfigAuditLogger;
+use App\Services\Sla\SlaConfigLoader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CalendarController extends Controller
@@ -20,34 +21,27 @@ class CalendarController extends Controller
         return view('admin.sla.business-hours', ['hours' => BusinessHour::query()->orderBy('day_of_week')->get()->keyBy('day_of_week')]);
     }
 
-    public function updateBusinessHours(Request $request, ConfigAuditLogger $audit): RedirectResponse
+    public function updateBusinessHours(UpdateBusinessHoursRequest $request, ConfigAuditLogger $audit): RedirectResponse
     {
-        $data = $request->validate([
-            'hours' => ['required', 'array'],
-            'hours.*.start_time' => ['nullable', 'date_format:H:i'],
-            'hours.*.end_time' => ['nullable', 'date_format:H:i'],
-            'hours.*.is_working_day' => ['nullable', 'boolean'],
-        ]);
-        if (! collect($data['hours'])->contains(fn (array $hour): bool => (bool) ($hour['is_working_day'] ?? false))) {
-            return back()->withErrors(['hours' => 'At least one working day is required.']);
-        }
+        $data = $request->validated();
         DB::transaction(function () use ($data, $audit): void {
             foreach (range(0, 6) as $day) {
-                $values = $data['hours'][$day] ?? [];
+                $values = $data['hours'][$day];
                 $working = (bool) ($values['is_working_day'] ?? false);
-                if ($working && (($values['end_time'] ?? '') <= ($values['start_time'] ?? ''))) {
-                    throw ValidationException::withMessages(["hours.{$day}.end_time" => 'The end time must be after the start time.']);
-                }
-                $hour = BusinessHour::firstOrNew(['day_of_week' => $day]);
-                $old = $hour->exists ? $hour->only(['is_working_day', 'start_time', 'end_time']) : [];
+                $hour = BusinessHour::query()->firstOrNew(['day_of_week' => $day]);
+                $old = $hour->exists ? $hour->only(['is_working_day', 'start_time', 'end_time']) : null;
                 $hour->fill([
                     'is_working_day' => $working,
-                    'start_time' => $working ? ($values['start_time'] ?? null) : null,
-                    'end_time' => $working ? ($values['end_time'] ?? null) : null,
+                    'start_time' => $working ? ($values['start_time'] ?? null).':00' : null,
+                    'end_time' => $working ? ($values['end_time'] ?? null).':00' : null,
                 ])->save();
-                $audit->log('updated', 'Business hours updated', $hour, $old, $hour->only(['is_working_day', 'start_time', 'end_time']));
+                $new = $hour->only(['is_working_day', 'start_time', 'end_time']);
+                if ($old === null || $old !== $new) {
+                    $audit->log('updated', 'Business hours updated', $hour, $old ?? [], $new);
+                }
             }
         });
+        SlaConfigLoader::forget();
 
         return back()->with('success', 'Business hours saved.');
     }

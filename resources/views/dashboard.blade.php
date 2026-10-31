@@ -23,7 +23,7 @@
             @endif
             <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
                 @foreach ($stats as $name => $count)
-                    <x-button href="{{ route('tickets.index', $statLinks[$name]) }}" variant="secondary" class="rounded-lg bg-surface p-5 normal-case shadow-sm border-0">
+                    <x-button href="{{ route('tickets.index', $statLinks[$name]) }}" variant="secondary" class="w-full justify-between rounded-lg bg-surface p-5 normal-case shadow-sm border-0">
                         <div class="text-sm capitalize text-content-muted">{{ $name }}</div>
                         <div class="mt-2 text-3xl font-semibold text-content">{{ $count }}</div>
                     </x-button>
