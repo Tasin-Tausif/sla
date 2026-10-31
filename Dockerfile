@@ -11,7 +11,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources
 COPY public ./public
-COPY storage/framework/views ./storage/framework/views
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 COPY --from=vendor /var/www/html/vendor/laravel/framework/src/Illuminate/Pagination/resources/views ./vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 RUN npm run build
@@ -40,6 +39,7 @@ COPY --from=vendor --chown=www-data:www-data /var/www/html/vendor ./vendor
 COPY --from=assets --chown=www-data:www-data /var/www/html/public/build ./public/build
 
 RUN composer dump-autoload --optimize \
+    && php artisan config:clear \
     && php artisan package:discover --ansi \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app \
     && chown -R www-data:www-data storage bootstrap/cache
@@ -48,4 +48,4 @@ COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 80
-CMD ["start.sh"]
+CMD ["/usr/local/bin/start.sh"]
