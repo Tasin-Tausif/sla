@@ -30,7 +30,7 @@
                         </div>
 
                         <x-form.field name="description" :label="__('Description')" :required="true">
-                            <x-form.textarea name="description" rows="8" required />
+                            <x-form.textarea name="description" rows="8"  class="w-full" />
                         </x-form.field>
 
                         <x-form.field name="attachments" :label="__('Attachments')" :hint="__('Up to :max files, :mb MB each (:types).', [

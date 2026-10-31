@@ -12,13 +12,13 @@
         @csrf
 
         <x-form.field name="email" label="{{ __('Email') }}" :required="true">
-            <x-form.input name="email" type="email" autocomplete="username" autofocus required />
+            <x-form.input name="email" type="email" autocomplete="username" autofocus required class="pe-20"/>
         </x-form.field>
 
         <div x-data="{ show: false }">
             <x-form.field name="password" label="{{ __('Password') }}" :required="true">
                 <div class="relative">
-                    <x-form.input name="password" type="password" autocomplete="current-password" required x-bind:type="show ? 'text' : 'password'" class="pe-15" />
+                    <x-form.input name="password" type="password" autocomplete="current-password" required x-bind:type="show ? 'text' : 'password'" class="pe-20" />
                     <x-button type="button" variant="secondary" size="sm" class="absolute end-1 top-1 normal-case tracking-normal" x-on:click="show = ! show" x-bind:aria-label="show ? '{{ __('Hide password') }}' : '{{ __('Show password') }}'">
                         <span x-text="show ? '{{ __('Hide') }}' : '{{ __('Show') }}'"></span>
                     </x-button>

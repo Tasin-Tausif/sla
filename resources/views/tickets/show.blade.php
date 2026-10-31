@@ -58,11 +58,13 @@
                     </div>
                     <div>
                         <div class="text-xs uppercase text-content-muted">{{ __('SLA due') }}</div>
-                        <div class="text-content">{{ $ticket->sla_due_at?->format('Y-m-d H:i') ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</div>
+                        <div class="text-content">
+                            {{ $ticket->sla_due_at?->format('Y-m-d H:i') ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</div>
                     </div>
                     <div>
                         <div class="text-xs uppercase text-content-muted">{{ __('First response') }}</div>
-                        <div class="text-content">{{ $ticket->first_response_at?->format('Y-m-d H:i') ?? __('Not yet') }}</div>
+                        <div class="text-content">
+                            {{ $ticket->first_response_at?->format('Y-m-d H:i') ?? __('Not yet') }}</div>
                     </div>
                 </div>
 
@@ -80,7 +82,8 @@
                             @csrf
                             <div>
                                 <x-input-label for="agent_id" :value="__('Assign to')" />
-                                <x-form.select name="agent_id" :options="$agents->pluck('name', 'id')->all()" :selected="$ticket->assigned_agent_id" class="mt-1 block w-56" required />
+                                <x-form.select name="agent_id" :options="$agents->pluck('name', 'id')->all()" :selected="$ticket->assigned_agent_id" class="mt-1 block w-56"
+                                    required />
                             </div>
                             <x-primary-button>{{ __('Assign') }}</x-primary-button>
                         </form>
@@ -89,13 +92,22 @@
                     @php
                         $current = $ticket->status;
                         $statusOptions = collect(App\Enums\TicketStatus::cases())
-                            ->reject(fn (App\Enums\TicketStatus $status): bool => $status === $current)
+                            ->reject(fn(App\Enums\TicketStatus $status): bool => $status === $current)
                             ->filter(function (App\Enums\TicketStatus $status) use ($ticket, $current): bool {
                                 $ability = match (true) {
                                     $status === App\Enums\TicketStatus::Resolved => 'resolve',
                                     $status === App\Enums\TicketStatus::Closed => 'close',
-                                    in_array($current, [App\Enums\TicketStatus::Resolved, App\Enums\TicketStatus::Closed], true)
-                                        && in_array($status, [App\Enums\TicketStatus::Open, App\Enums\TicketStatus::InProgress], true) => 'reopen',
+                                    in_array(
+                                        $current,
+                                        [App\Enums\TicketStatus::Resolved, App\Enums\TicketStatus::Closed],
+                                        true,
+                                    ) &&
+                                        in_array(
+                                            $status,
+                                            [App\Enums\TicketStatus::Open, App\Enums\TicketStatus::InProgress],
+                                            true,
+                                        )
+                                        => 'reopen',
                                     default => 'changeStatus',
                                 };
 
@@ -104,24 +116,29 @@
                     @endphp
 
                     @if ($statusOptions->isNotEmpty())
-                        <form method="POST" action="{{ route('tickets.status', $ticket) }}" class="flex items-end gap-2">
+                        <form method="POST" action="{{ route('tickets.status', $ticket) }}"
+                            class="flex items-end gap-2">
                             @csrf
                             @method('PATCH')
                             <div>
                                 <x-input-label for="status" :value="__('Status')" />
-                                <x-form.select name="status" :options="$statusOptions->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" class="mt-1 block w-56" required />
+                                <x-form.select name="status" :options="$statusOptions
+                                    ->mapWithKeys(fn($status) => [$status->value => $status->label()])
+                                    ->all()" class="mt-1 block w-56" required />
                             </div>
                             <x-secondary-button type="submit">{{ __('Update Status') }}</x-secondary-button>
                         </form>
                     @endif
 
                     @can('changePriority', $ticket)
-                        <form method="POST" action="{{ route('tickets.priority', $ticket) }}" class="flex items-end gap-2">
+                        <form method="POST" action="{{ route('tickets.priority', $ticket) }}"
+                            class="flex items-end gap-2">
                             @csrf
                             @method('PATCH')
                             <div>
                                 <x-input-label for="priority" :value="__('Priority')" />
-                                <x-form.select name="priority" :options="App\Enums\TicketPriority::options()" :selected="$ticket->priority->value" class="mt-1 block w-44" required />
+                                <x-form.select name="priority" :options="App\Enums\TicketPriority::options()" :selected="$ticket->priority->value" class="mt-1 block w-44"
+                                    required />
                             </div>
                             <x-secondary-button type="submit">{{ __('Update Priority') }}</x-secondary-button>
                         </form>
@@ -144,11 +161,14 @@
                             <li class="flex items-center justify-between text-sm">
                                 <span class="text-content">
                                     {{ $attachment->original_name }}
-                                    <span class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
+                                    <span class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }}
+                                        KB)</span>
                                 </span>
                                 @can('downloadAttachment', [$ticket, $attachment])
-                                    <a href="{{ route('attachments.download', $attachment) }}"
-                                       class="text-primary hover:text-primary">{{ __('Download') }}</a>
+                                    <x-button href="{{ route('attachments.download', $attachment) }}" variant="warning"
+                                        size="sm" class="normal-case tracking-normal">
+                                        {{ __('Download') }}
+                                    </x-button>
                                 @endcan
                             </li>
                         @endforeach
@@ -162,17 +182,21 @@
 
                 <div class="space-y-4">
                     @forelse ($replies as $reply)
-                        <div class="border rounded-md p-4 {{ $reply->is_internal ? 'bg-warning-soft border-line' : 'bg-surface-muted border-line' }}">
+                        <div
+                            class="border rounded-md p-4 {{ $reply->is_internal ? 'bg-warning-soft border-line' : 'bg-surface-muted border-line' }}">
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2 text-sm">
-                                    <span class="font-medium text-content">{{ $reply->user?->name ?? __('System') }}</span>
+                                    <span
+                                        class="font-medium text-content">{{ $reply->user?->name ?? __('System') }}</span>
                                     @if ($reply->is_internal)
-                                        <span class="inline-flex items-center rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
                                             {{ __('Internal note') }}
                                         </span>
                                     @endif
                                 </div>
-                                <span class="text-xs text-content-muted">{{ $reply->created_at->format('Y-m-d H:i') }}</span>
+                                <span
+                                    class="text-xs text-content-muted">{{ $reply->created_at->format('Y-m-d H:i') }}</span>
                             </div>
 
                             <div class="text-sm text-content leading-relaxed">{!! nl2br(e($reply->body)) !!}</div>
@@ -183,11 +207,15 @@
                                         <li class="flex items-center justify-between text-sm">
                                             <span class="text-content-muted">
                                                 {{ $attachment->original_name }}
-                                                <span class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
+                                                <span
+                                                    class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }}
+                                                    KB)</span>
                                             </span>
                                             @can('downloadAttachment', [$ticket, $attachment])
-                                                <a href="{{ route('attachments.download', $attachment) }}"
-                                                   class="text-primary hover:text-primary">{{ __('Download') }}</a>
+                                                <x-button href="{{ route('attachments.download', $attachment) }}"
+                                                    variant="warning" size="sm" class="normal-case tracking-normal">
+                                                    {{ __('Download') }}
+                                                </x-button>
                                             @endcan
                                         </li>
                                     @endforeach
@@ -201,12 +229,12 @@
 
                 @can('reply', $ticket)
                     <form method="POST" action="{{ route('tickets.replies.store', $ticket) }}"
-                          enctype="multipart/form-data" class="mt-6 border-t border-line pt-4 space-y-4">
+                        enctype="multipart/form-data" class="mt-6 border-t border-line pt-4 space-y-4">
                         @csrf
 
                         <div>
                             <x-input-label for="body" :value="__('Your reply')" />
-                            <x-form.textarea name="body" rows="5" required />
+                            <x-form.textarea name="body" class="w-full" rows="3" required />
                         </div>
 
                         @can('addInternalNote', $ticket)
@@ -217,10 +245,10 @@
                         <div>
                             <x-input-label for="reply-attachments" :value="__('Attachments')" />
                             <x-form.file name="attachments" :multiple="true" :hint="__('Up to :max files, :mb MB each; allowed: :types.', [
-                                    'max' => config('tickets.attachments.max_files'),
-                                    'mb' => (int) ceil(config('tickets.attachments.max_kb') / 1024),
-                                    'types' => implode(', ', config('tickets.attachments.mimes')),
-                                ])" id="reply-attachments" />
+                                'max' => config('tickets.attachments.max_files'),
+                                'mb' => (int) ceil(config('tickets.attachments.max_kb') / 1024),
+                                'types' => implode(', ', config('tickets.attachments.mimes')),
+                            ])" id="reply-attachments" />
                         </div>
 
                         <x-primary-button>{{ __('Send Reply') }}</x-primary-button>
@@ -247,7 +275,8 @@
                                     @if ($activity->properties->has('old'))
                                         <div class="mt-1 text-xs text-content-muted">
                                             @foreach ((array) $activity->properties->get('old') as $key => $from)
-                                                {{ $key }}: {{ $from }} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {{ $activity->properties->get('new', [])[$key] ?? '' }}<br>
+                                                {{ $key }}: {{ $from }} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢
+                                                {{ $activity->properties->get('new', [])[$key] ?? '' }}<br>
                                             @endforeach
                                         </div>
                                     @endif

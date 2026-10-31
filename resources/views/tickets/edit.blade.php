@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-content leading-tight">
-            {{ __('Edit Ticket') }} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {{ $ticket->ticket_number }}
+            {{ __('Edit Ticket: ') }} {{ $ticket->ticket_number }}
         </h2>
     </x-slot>
 
@@ -25,7 +25,7 @@
                         </x-form.field>
 
                         <x-form.field name="description" :label="__('Description')" :required="true">
-                            <x-form.textarea name="description" :value="$ticket->description" rows="10" required />
+                            <x-form.textarea name="description" class="w-full" :value="$ticket->description" rows="10" required />
                         </x-form.field>
 
                         <div class="flex items-center space-x-4">
