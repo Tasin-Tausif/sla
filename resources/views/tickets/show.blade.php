@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-content leading-tight">
                 {{ $ticket->ticket_number }}
             </h2>
 
@@ -14,25 +14,25 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="page-shell space-y-4">
             @if (session('status'))
-                <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md text-sm">
+                <div class="bg-success-soft border border-line text-success px-4 py-3 rounded-md text-sm">
                     {{ session('status') }}
                 </div>
             @endif
 
             @foreach ($errors->all() as $error)
-                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
+                <div class="bg-danger-soft border border-line text-danger px-4 py-3 rounded-md text-sm">
                     {{ $error }}
                 </div>
             @endforeach
 
             {{-- Ticket header --}}
-            <div class="bg-white shadow sm:rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-start justify-between gap-3">
+            <div class="bg-surface shadow sm:rounded-lg">
+                <div class="px-6 py-4 border-b border-line flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900">{{ $ticket->subject }}</h3>
-                        <p class="mt-1 text-sm text-gray-500">
+                        <h3 class="text-lg font-semibold text-content">{{ $ticket->subject }}</h3>
+                        <p class="mt-1 text-sm text-content-muted">
                             {{ __('Created by :name on :date', [
                                 'name' => $ticket->creator?->name ?? __('Unknown'),
                                 'date' => $ticket->created_at->format('Y-m-d H:i'),
@@ -49,25 +49,25 @@
 
                 <div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                     <div>
-                        <div class="text-xs uppercase text-gray-400">{{ __('Category') }}</div>
-                        <div class="text-gray-700">{{ $ticket->category?->name ?? '—' }}</div>
+                        <div class="text-xs uppercase text-content-muted">{{ __('Category') }}</div>
+                        <div class="text-content">{{ $ticket->category?->name ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</div>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-400">{{ __('Assignee') }}</div>
-                        <div class="text-gray-700">{{ $ticket->assignedAgent?->name ?? __('Unassigned') }}</div>
+                        <div class="text-xs uppercase text-content-muted">{{ __('Assignee') }}</div>
+                        <div class="text-content">{{ $ticket->assignedAgent?->name ?? __('Unassigned') }}</div>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-400">{{ __('SLA due') }}</div>
-                        <div class="text-gray-700">{{ $ticket->sla_due_at?->format('Y-m-d H:i') ?? '—' }}</div>
+                        <div class="text-xs uppercase text-content-muted">{{ __('SLA due') }}</div>
+                        <div class="text-content">{{ $ticket->sla_due_at?->format('Y-m-d H:i') ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</div>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-400">{{ __('First response') }}</div>
-                        <div class="text-gray-700">{{ $ticket->first_response_at?->format('Y-m-d H:i') ?? __('Not yet') }}</div>
+                        <div class="text-xs uppercase text-content-muted">{{ __('First response') }}</div>
+                        <div class="text-content">{{ $ticket->first_response_at?->format('Y-m-d H:i') ?? __('Not yet') }}</div>
                     </div>
                 </div>
 
                 {{-- Actions --}}
-                <div class="px-6 py-4 border-t border-gray-100 flex flex-wrap items-end gap-4">
+                <div class="px-6 py-4 border-t border-line flex flex-wrap items-end gap-4">
                     @can('claim', $ticket)
                         <form method="POST" action="{{ route('tickets.claim', $ticket) }}">
                             @csrf
@@ -130,25 +130,25 @@
             </div>
 
             {{-- Description --}}
-            <div class="bg-white shadow sm:rounded-lg p-6">
-                <h4 class="text-sm font-semibold uppercase text-gray-400 mb-2">{{ __('Description') }}</h4>
-                <div class="text-gray-800 text-sm leading-relaxed">{!! nl2br(e($ticket->description)) !!}</div>
+            <div class="bg-surface shadow sm:rounded-lg p-6">
+                <h4 class="text-sm font-semibold uppercase text-content-muted mb-2">{{ __('Description') }}</h4>
+                <div class="text-content text-sm leading-relaxed">{!! nl2br(e($ticket->description)) !!}</div>
             </div>
 
             {{-- Ticket-level attachments --}}
             @if ($attachments->isNotEmpty())
-                <div class="bg-white shadow sm:rounded-lg p-6">
-                    <h4 class="text-sm font-semibold uppercase text-gray-400 mb-3">{{ __('Attachments') }}</h4>
+                <div class="bg-surface shadow sm:rounded-lg p-6">
+                    <h4 class="text-sm font-semibold uppercase text-content-muted mb-3">{{ __('Attachments') }}</h4>
                     <ul class="space-y-2">
                         @foreach ($attachments as $attachment)
                             <li class="flex items-center justify-between text-sm">
-                                <span class="text-gray-700">
+                                <span class="text-content">
                                     {{ $attachment->original_name }}
-                                    <span class="text-gray-400">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
+                                    <span class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
                                 </span>
                                 @can('downloadAttachment', [$ticket, $attachment])
                                     <a href="{{ route('attachments.download', $attachment) }}"
-                                       class="text-indigo-600 hover:text-indigo-900">{{ __('Download') }}</a>
+                                       class="text-primary hover:text-primary">{{ __('Download') }}</a>
                                 @endcan
                             </li>
                         @endforeach
@@ -157,37 +157,37 @@
             @endif
 
             {{-- Conversation --}}
-            <div class="bg-white shadow sm:rounded-lg p-6">
-                <h4 class="text-sm font-semibold uppercase text-gray-400 mb-4">{{ __('Conversation') }}</h4>
+            <div class="bg-surface shadow sm:rounded-lg p-6">
+                <h4 class="text-sm font-semibold uppercase text-content-muted mb-4">{{ __('Conversation') }}</h4>
 
                 <div class="space-y-4">
                     @forelse ($replies as $reply)
-                        <div class="border rounded-md p-4 {{ $reply->is_internal ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200' }}">
+                        <div class="border rounded-md p-4 {{ $reply->is_internal ? 'bg-warning-soft border-line' : 'bg-surface-muted border-line' }}">
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2 text-sm">
-                                    <span class="font-medium text-gray-800">{{ $reply->user?->name ?? __('System') }}</span>
+                                    <span class="font-medium text-content">{{ $reply->user?->name ?? __('System') }}</span>
                                     @if ($reply->is_internal)
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                        <span class="inline-flex items-center rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
                                             {{ __('Internal note') }}
                                         </span>
                                     @endif
                                 </div>
-                                <span class="text-xs text-gray-500">{{ $reply->created_at->format('Y-m-d H:i') }}</span>
+                                <span class="text-xs text-content-muted">{{ $reply->created_at->format('Y-m-d H:i') }}</span>
                             </div>
 
-                            <div class="text-sm text-gray-800 leading-relaxed">{!! nl2br(e($reply->body)) !!}</div>
+                            <div class="text-sm text-content leading-relaxed">{!! nl2br(e($reply->body)) !!}</div>
 
                             @if ($reply->attachments->isNotEmpty())
-                                <ul class="mt-3 space-y-1 border-t border-gray-200 pt-2">
+                                <ul class="mt-3 space-y-1 border-t border-line pt-2">
                                     @foreach ($reply->attachments as $attachment)
                                         <li class="flex items-center justify-between text-sm">
-                                            <span class="text-gray-600">
+                                            <span class="text-content-muted">
                                                 {{ $attachment->original_name }}
-                                                <span class="text-gray-400">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
+                                                <span class="text-content-muted">({{ number_format($attachment->size / 1024, 1) }} KB)</span>
                                             </span>
                                             @can('downloadAttachment', [$ticket, $attachment])
                                                 <a href="{{ route('attachments.download', $attachment) }}"
-                                                   class="text-indigo-600 hover:text-indigo-900">{{ __('Download') }}</a>
+                                                   class="text-primary hover:text-primary">{{ __('Download') }}</a>
                                             @endcan
                                         </li>
                                     @endforeach
@@ -195,13 +195,13 @@
                             @endif
                         </div>
                     @empty
-                        <p class="text-sm text-gray-500">{{ __('No replies yet.') }}</p>
+                        <p class="text-sm text-content-muted">{{ __('No replies yet.') }}</p>
                     @endforelse
                 </div>
 
                 @can('reply', $ticket)
                     <form method="POST" action="{{ route('tickets.replies.store', $ticket) }}"
-                          enctype="multipart/form-data" class="mt-6 border-t border-gray-200 pt-4 space-y-4">
+                          enctype="multipart/form-data" class="mt-6 border-t border-line pt-4 space-y-4">
                         @csrf
 
                         <div>
@@ -229,30 +229,30 @@
             </div>
 
             {{-- Activity --}}
-            <div class="bg-white shadow sm:rounded-lg p-6">
-                <h4 class="text-sm font-semibold uppercase text-gray-400 mb-4">{{ __('Activity') }}</h4>
+            <div class="bg-surface shadow sm:rounded-lg p-6">
+                <h4 class="text-sm font-semibold uppercase text-content-muted mb-4">{{ __('Activity') }}</h4>
 
                 @if ($activities->isEmpty())
-                    <p class="text-sm text-gray-500">{{ __('No activity recorded.') }}</p>
+                    <p class="text-sm text-content-muted">{{ __('No activity recorded.') }}</p>
                 @else
                     <ul class="space-y-3">
                         @foreach ($activities as $activity)
                             <li class="flex items-start justify-between gap-4 text-sm">
                                 <div>
-                                    <span class="font-medium text-gray-800">
+                                    <span class="font-medium text-content">
                                         {{ $activity->causer?->name ?? __('System') }}
                                     </span>
-                                    <span class="text-gray-600">{{ $activity->description }}</span>
+                                    <span class="text-content-muted">{{ $activity->description }}</span>
 
                                     @if ($activity->properties->has('old'))
-                                        <div class="mt-1 text-xs text-gray-500">
+                                        <div class="mt-1 text-xs text-content-muted">
                                             @foreach ((array) $activity->properties->get('old') as $key => $from)
-                                                {{ $key }}: {{ $from }} → {{ $activity->properties->get('new', [])[$key] ?? '' }}<br>
+                                                {{ $key }}: {{ $from }} ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {{ $activity->properties->get('new', [])[$key] ?? '' }}<br>
                                             @endforeach
                                         </div>
                                     @endif
                                 </div>
-                                <span class="whitespace-nowrap text-xs text-gray-400">
+                                <span class="whitespace-nowrap text-xs text-content-muted">
                                     {{ $activity->created_at->format('Y-m-d H:i') }}
                                 </span>
                             </li>

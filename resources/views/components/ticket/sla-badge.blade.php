@@ -2,10 +2,10 @@
 
 @php
     [$classes, $label] = match ($ticket->slaState()) {
-        'within' => ['bg-green-100 text-green-800', __('Within SLA')],
-        'approaching' => ['bg-amber-100 text-amber-800', __('Approaching breach')],
-        'breached' => ['bg-red-100 text-red-800', __('SLA breached')],
-        default => ['bg-gray-100 text-gray-600', __('SLA resolved')],
+        'within' => ['bg-success-soft text-success', __('Within SLA')],
+        'approaching' => ['bg-warning-soft text-warning', __('Approaching breach')],
+        'breached' => ['bg-danger-soft text-danger', __('SLA breached')],
+        default => ['bg-bg text-content-muted', __('SLA resolved')],
     };
 @endphp
 

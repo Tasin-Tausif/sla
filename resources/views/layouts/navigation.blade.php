@@ -1,17 +1,17 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-surface border-b border-line">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="page-shell">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route(Auth::user()->homeRoute()) }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto fill-current text-content" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 lg:-my-px lg:ms-10 lg:flex">
                     @can('dashboard.view')
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
@@ -28,17 +28,17 @@
                     <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
                         {{ __('Notifications') }}
                         @if (Auth::user()->unreadNotifications()->count())
-                            <span class="ms-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">{{ Auth::user()->unreadNotifications()->count() }}</span>
+                            <span class="ms-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{{ Auth::user()->unreadNotifications()->count() }}</span>
                         @endif
                     </x-nav-link>
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden lg:flex lg:items-center lg:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <x-button type="button" variant="secondary" size="sm" class="normal-case font-medium text-gray-500 bg-white shadow-none border-0">
+                        <x-button type="button" variant="secondary" size="sm" class="normal-case font-medium text-content-muted bg-surface shadow-none border-0">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
@@ -69,8 +69,8 @@
             </div>
 
             <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <x-button type="button" variant="secondary" size="sm" @click="open = ! open" class="normal-case p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 shadow-none border-0">
+            <div class="-me-2 flex items-center lg:hidden">
+                <x-button type="button" variant="secondary" size="sm" @click="open = ! open" class="normal-case p-2 text-content-muted hover:text-content-muted hover:bg-bg shadow-none border-0">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden lg:hidden">
         <div class="pt-2 pb-3 space-y-1">
             @can('dashboard.view')
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
@@ -102,10 +102,10 @@
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-line">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-content">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-content-muted">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">

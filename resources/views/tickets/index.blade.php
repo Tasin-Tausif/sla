@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-content leading-tight">
                 {{ __('Tickets') }}
             </h2>
 
@@ -14,19 +14,31 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="page-shell space-y-4">
             <div class="flex items-center space-x-4">
-                <x-button href="{{ route('tickets.index', ['view' => 'active']) }}" variant="secondary" class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                <x-button href="{{ route('tickets.index', ['view' => 'active']) }}" :variant="$view === 'active' ? 'primary' : 'secondary'" class="px-4 py-2 rounded-md text-sm font-medium">
                     {{ __('Active') }}
                 </x-button>
-                <x-button href="{{ route('tickets.index', ['view' => 'closed']) }}" variant="secondary" class="px-4 py-2 rounded-md text-sm font-medium {{ $view === 'closed' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                <x-button href="{{ route('tickets.index', ['view' => 'closed']) }}" :variant="$view === 'closed' ? 'primary' : 'secondary'" class="px-4 py-2 rounded-md text-sm font-medium">
                     {{ __('Closed') }}
                 </x-button>
             </div>
 
-            <form method="GET" action="{{ route('tickets.index') }}" class="bg-white p-4 shadow-sm sm:rounded-lg">
+            <form method="GET" action="{{ route('tickets.index') }}" class="bg-surface p-4 shadow-sm sm:rounded-lg">
                 <input type="hidden" name="view" value="{{ $view }}">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                @php
+                    $filterNames = ['q', 'status', 'priority', 'category_id', 'sla_status', 'date_from', 'date_to', 'assigned_agent_id', 'customer'];
+                    $hasActiveFilters = request()->hasAny($filterNames);
+                    $activeFilterCount = collect($filterNames)->filter(fn (string $name): bool => request()->filled($name))->count();
+                @endphp
+                <input type="checkbox" id="filters-toggle" class="peer sr-only" @checked($hasActiveFilters)>
+                <label for="filters-toggle" class="mb-4 inline-flex min-h-[var(--control-height)] cursor-pointer items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-medium text-content focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-focus-ring md:hidden">
+                    {{ __('Filters') }}
+                    @if ($activeFilterCount > 0)
+                        <span class="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{{ $activeFilterCount }}</span>
+                    @endif
+                </label>
+                <div class="hidden grid-cols-1 gap-4 peer-checked:grid md:grid md:grid-cols-2 lg:grid-cols-4">
                     <div class="lg:col-span-2">
                         <x-input-label for="q" :value="__('Search')" />
                         <x-text-input id="q" name="q" type="text" class="mt-1 block w-full"
@@ -66,57 +78,57 @@
                             <x-text-input id="customer" name="customer" type="text" class="mt-1 block w-full" :value="request('customer')" />
                         </div>
                     @endif
-                </div>
-                <div class="mt-4 flex items-center gap-3">
-                    <x-primary-button>{{ __('Filter') }}</x-primary-button>
-                    <x-button href="{{ route('tickets.index', ['view' => $view]) }}" variant="secondary" size="sm">{{ __('Reset') }}</x-button>
+                    <div class="col-span-full mt-0 flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <x-primary-button class="w-full justify-center sm:w-auto">{{ __('Filter') }}</x-primary-button>
+                        <x-button href="{{ route('tickets.index', ['view' => $view]) }}" variant="secondary" size="sm" class="w-full sm:w-auto">{{ __('Reset') }}</x-button>
+                    </div>
                 </div>
             </form>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="border-b border-gray-200 px-6 py-3 text-sm text-gray-600">
+            <div class="bg-surface overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="border-b border-line px-6 py-3 text-sm text-content-muted">
                     {{ trans_choice(':count result|:count results', $tickets->total(), ['count' => $tickets->total()]) }}
                 </div>
                 @if ($tickets->isEmpty())
-                    <div class="p-6 text-gray-500">
+                    <div class="p-6 text-content-muted">
                         {{ $view === 'closed' ? __('No closed tickets found.') : __('No active tickets found.') }}
                     </div>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <x-responsive-table>
+                        <table class="min-w-full divide-y divide-line">
+                            <thead class="bg-surface-muted">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Ticket') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Category') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Status') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Priority') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('SLA') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Assignee') }}</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ __('Updated') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Ticket') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Category') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Status') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Priority') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('SLA') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Assignee') }}</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-content-muted uppercase">{{ __('Updated') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody class="divide-y divide-line">
                                 @foreach ($tickets as $ticket)
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-surface-muted">
                                         <td class="px-4 py-3">
-                                            <a href="{{ route('tickets.show', $ticket) }}" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                            <a href="{{ route('tickets.show', $ticket) }}" class="text-primary hover:text-primary font-medium">
                                                 {{ $ticket->ticket_number }}
                                             </a>
-                                            <div class="text-sm text-gray-500">{{ $ticket->subject }}</div>
+                                            <div class="text-sm text-content-muted">{{ $ticket->subject }}</div>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-600">{{ $ticket->category?->name }}</td>
+                                        <td class="px-4 py-3 text-sm text-content-muted">{{ $ticket->category?->name }}</td>
                                         <td class="px-4 py-3"><x-ticket.status-badge :ticket="$ticket" /></td>
                                         <td class="px-4 py-3"><x-ticket.priority-badge :ticket="$ticket" /></td>
                                         <td class="px-4 py-3"><x-ticket.sla-badge :ticket="$ticket" /></td>
-                                        <td class="px-4 py-3 text-sm text-gray-600">
+                                        <td class="px-4 py-3 text-sm text-content-muted">
                                             {{ $ticket->assignedAgent?->name ?? __('Unassigned') }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-500">{{ $ticket->updated_at->diffForHumans() }}</td>
+                                        <td class="px-4 py-3 text-sm text-content-muted">{{ $ticket->updated_at->diffForHumans() }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
+                    </x-responsive-table>
 
                     <div class="p-4">
                         {{ $tickets->links() }}

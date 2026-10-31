@@ -7,7 +7,7 @@
     @endif
     {{ $slot }}
     @if ($hint)
-        <p class="mt-1 text-xs text-gray-500">{{ $hint }}</p>
+        <p class="mt-1 text-xs text-content-muted">{{ $hint }}</p>
     @endif
     <x-input-error class="mt-2" :messages="$errors->get($name)" />
     <x-input-error class="mt-2" :messages="$nestedMessages" />

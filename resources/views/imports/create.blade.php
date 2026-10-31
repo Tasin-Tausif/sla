@@ -1,8 +1,8 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">{{ __('Import tickets') }}</h2></x-slot>
+    <x-slot name="header"><h2 class="font-semibold text-xl text-content">{{ __('Import tickets') }}</h2></x-slot>
     <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="rounded-lg bg-white p-6 shadow-sm">
+        <div class="page-shell max-w-2xl">
+            <div class="rounded-lg bg-surface p-6 shadow-sm">
                 <x-button href="{{ route('imports.template') }}" variant="secondary" size="sm">{{ __('Download sample template') }}</x-button>
                 <form method="POST" action="{{ route('imports.store') }}" enctype="multipart/form-data" class="mt-4 space-y-4">
                     @csrf

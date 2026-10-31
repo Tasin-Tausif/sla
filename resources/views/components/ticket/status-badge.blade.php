@@ -2,12 +2,12 @@
 
 @php
     $classes = match ($ticket->status) {
-        \App\Enums\TicketStatus::Open => 'bg-blue-100 text-blue-800',
-        \App\Enums\TicketStatus::InProgress => 'bg-indigo-100 text-indigo-800',
-        \App\Enums\TicketStatus::WaitingForCustomer => 'bg-amber-100 text-amber-800',
-        \App\Enums\TicketStatus::Resolved => 'bg-emerald-100 text-emerald-800',
-        \App\Enums\TicketStatus::Closed => 'bg-gray-200 text-gray-700',
-        default => 'bg-gray-100 text-gray-700',
+        \App\Enums\TicketStatus::Open => 'bg-open-soft text-open',
+        \App\Enums\TicketStatus::InProgress => 'bg-primary-soft text-primary',
+        \App\Enums\TicketStatus::WaitingForCustomer => 'bg-warning-soft text-warning',
+        \App\Enums\TicketStatus::Resolved => 'bg-resolved-soft text-resolved',
+        \App\Enums\TicketStatus::Closed => 'bg-surface-muted text-content',
+        default => 'bg-bg text-content',
     };
 @endphp
 
