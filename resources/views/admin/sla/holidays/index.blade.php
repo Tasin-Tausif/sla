@@ -1,0 +1,6 @@
+<x-app-layout>
+    <x-slot name="header"><x-admin.partials.header title="{{ __('Holidays') }}" /></x-slot>
+    <div class="py-8"><div class="page-shell space-y-4"><div class="flex justify-end"><x-button href="{{ route('admin.holidays.create') }}">{{ __('New holiday') }}</x-button></div>
+        <div class="overflow-x-auto rounded-lg bg-surface shadow-card"><x-responsive-table><table class="min-w-full divide-y divide-line"><thead><tr><th class="px-4 py-3 text-left">{{ __('Date') }}</th><th class="px-4 py-3 text-left">{{ __('Name') }}</th><th></th></tr></thead><tbody class="divide-y divide-line">@foreach($holidays as $holiday)<tr><td class="px-4 py-3">{{ $holiday->holiday_date->format('Y-m-d') }}</td><td class="px-4 py-3">{{ $holiday->name }}</td><td class="px-4 py-3 text-right"><x-button href="{{ route('admin.holidays.edit', $holiday) }}" variant="secondary" size="sm">{{ __('Edit') }}</x-button><form class="inline" method="POST" action="{{ route('admin.holidays.destroy', $holiday) }}" onsubmit="return confirm('{{ __('Delete this holiday?') }}')">@csrf @method('DELETE')<x-button type="submit" variant="danger" size="sm">{{ __('Delete') }}</x-button></form></td></tr>@endforeach</tbody></table></x-responsive-table></div>{{ $holidays->links() }}
+    </div></div>
+</x-app-layout>

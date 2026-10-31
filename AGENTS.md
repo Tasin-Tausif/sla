@@ -9,6 +9,7 @@ The design document is `support-ticket-erd.md` in the repo root. Read it, never 
 - Do not ask questions. Make reasonable assumptions and list them at the end.
 - Be economical: use targeted reads and searches, run focused tests per task, and run the full suite and `./vendor/bin/pint` once at the end.
 - Never commit real credentials.
+- The development database is `sla` and contains user data. Never run `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `db:wipe`, or destructive seed commands against it. Only run the explicitly approved idempotent seeders when the task requires them.
 
 ## Conventions
 - Business logic lives in `app/Services`: TicketService, TicketReplyService, TicketAssignmentService, TicketActivityLogger, TicketNumberGenerator, Sla\SlaCalculator, Sla\SlaConfigLoader. Controllers are thin, validation is in Form Requests, authorization uses `Gate::authorize()` with `app/Policies/TicketPolicy.php`.

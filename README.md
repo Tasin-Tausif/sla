@@ -15,6 +15,21 @@ control height. The responsive breakpoints are mobile below 640px, tablet from
 Email templates are intentionally not themed with CSS variables because mail
 clients do not reliably support them.
 
+## Administration
+
+Administrators can manage categories, SLA policies, business hours, holidays,
+users, roles, permissions, and configuration history from the Configuration
+area. Each section is protected by its matching permission, while ticket
+visibility remains controlled by the built-in admin, agent, and customer roles.
+Users cannot remove the last administrator, delete themselves, or delete users
+with ticket history.
+
+SLA, business-hours, and holiday changes apply to tickets created or
+re-prioritised after saving; existing tickets keep their stored SLA snapshot.
+The permission catalog lives in `config/access.php`. Running
+`php artisan db:seed --class=RolePermissionSeeder` is non-destructive: it
+keeps administrator edits and adds only newly introduced default permissions.
+
 ## Reusable Blade components
 
 Shared controls keep the Breeze/Tailwind design consistent:

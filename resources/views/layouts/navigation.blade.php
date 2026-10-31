@@ -54,6 +54,21 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        @canany(['users.manage', 'roles.manage', 'categories.manage', 'sla.manage', 'audit.view'])
+                            <div class="border-t border-line px-4 py-2 text-xs font-semibold uppercase tracking-wider text-content-muted">{{ __('Configuration') }}</div>
+                            @can('users.manage') <x-dropdown-link :href="route('admin.users.index')" :class="request()->routeIs('admin.users.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Users') }}</x-dropdown-link> @endcan
+                            @can('roles.manage') <x-dropdown-link :href="route('admin.roles.index')" :class="request()->routeIs('admin.roles.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Roles') }}</x-dropdown-link> @endcan
+                            @can('roles.manage') <x-dropdown-link :href="route('admin.permissions.index')" :class="request()->routeIs('admin.permissions.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Permissions') }}</x-dropdown-link> @endcan
+                            @can('categories.manage') <x-dropdown-link :href="route('admin.categories.index')" :class="request()->routeIs('admin.categories.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Categories') }}</x-dropdown-link> @endcan
+                            @can('sla.manage')
+                                <x-dropdown-link :href="route('admin.sla.policies.index')" :class="request()->routeIs('admin.sla.policies.*') ? 'bg-primary-soft text-primary' : ''">{{ __('SLA policies') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('admin.sla.business-hours.index')" :class="request()->routeIs('admin.sla.business-hours.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Business hours') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('admin.holidays.index')" :class="request()->routeIs('admin.holidays.*') ? 'bg-primary-soft text-primary' : ''">{{ __('Holidays') }}</x-dropdown-link>
+                            @endcan
+                            @can('audit.view') <x-dropdown-link :href="route('admin.audit.index')" :class="request()->routeIs('admin.audit.*') ? 'bg-primary-soft text-primary' : ''">{{ __('History') }}</x-dropdown-link> @endcan
+                            <div class="my-1 border-t border-line"></div>
+                        @endcanany
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -112,6 +127,21 @@
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                @canany(['users.manage', 'roles.manage', 'categories.manage', 'sla.manage', 'audit.view'])
+                    <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-content-muted">{{ __('Configuration') }}</div>
+                    @can('users.manage') <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">{{ __('Users') }}</x-responsive-nav-link> @endcan
+                    @can('roles.manage') <x-responsive-nav-link :href="route('admin.roles.index')" :active="request()->routeIs('admin.roles.*')">{{ __('Roles') }}</x-responsive-nav-link> @endcan
+                    @can('roles.manage') <x-responsive-nav-link :href="route('admin.permissions.index')" :active="request()->routeIs('admin.permissions.*')">{{ __('Permissions') }}</x-responsive-nav-link> @endcan
+                    @can('categories.manage') <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">{{ __('Categories') }}</x-responsive-nav-link> @endcan
+                    @can('sla.manage')
+                        <x-responsive-nav-link :href="route('admin.sla.policies.index')" :active="request()->routeIs('admin.sla.policies.*')">{{ __('SLA policies') }}</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.sla.business-hours.index')" :active="request()->routeIs('admin.sla.business-hours.*')">{{ __('Business hours') }}</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.holidays.index')" :active="request()->routeIs('admin.holidays.*')">{{ __('Holidays') }}</x-responsive-nav-link>
+                    @endcan
+                    @can('audit.view') <x-responsive-nav-link :href="route('admin.audit.index')" :active="request()->routeIs('admin.audit.*')">{{ __('History') }}</x-responsive-nav-link> @endcan
+                    <div class="my-1 border-t border-line"></div>
+                @endcanany
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">

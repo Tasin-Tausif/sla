@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AuditController;
+use App\Http\Controllers\Admin\CalendarController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SlaPolicyController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
@@ -52,6 +60,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tickets.priority');
     Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])
         ->name('attachments.download');
+});
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', AdminController::class)->name('index');
+
+    Route::middleware('can:categories.manage')->group(function () {
+        Route::resource('categories', CategoryController::class)->except('show');
+    });
+    Route::middleware('can:sla.manage')->group(function () {
+        Route::get('sla/policies', [SlaPolicyController::class, 'index'])->name('sla.policies.index');
+        Route::put('sla/policies', [SlaPolicyController::class, 'update'])->name('sla.policies.update');
+        Route::get('sla/business-hours', [CalendarController::class, 'businessHours'])->name('sla.business-hours.index');
+        Route::put('sla/business-hours', [CalendarController::class, 'updateBusinessHours'])->name('sla.business-hours.update');
+        Route::get('holidays', [CalendarController::class, 'holidays'])->name('holidays.index');
+        Route::get('holidays/create', [CalendarController::class, 'createHoliday'])->name('holidays.create');
+        Route::post('holidays', [CalendarController::class, 'storeHoliday'])->name('holidays.store');
+        Route::get('holidays/{holiday}/edit', [CalendarController::class, 'editHoliday'])->name('holidays.edit');
+        Route::put('holidays/{holiday}', [CalendarController::class, 'updateHoliday'])->name('holidays.update');
+        Route::delete('holidays/{holiday}', [CalendarController::class, 'destroyHoliday'])->name('holidays.destroy');
+    });
+    Route::middleware('can:users.manage')->group(function () {
+        Route::resource('users', UserController::class)->except('show');
+        Route::post('users/{user}/make-agent', [UserController::class, 'makeAgent'])->name('users.make-agent');
+        Route::post('users/{user}/remove-agent', [UserController::class, 'removeAgent'])->name('users.remove-agent');
+    });
+    Route::middleware('can:roles.manage')->group(function () {
+        Route::resource('roles', RoleController::class)->except('show');
+        Route::post('roles/{role}/reset', [RoleController::class, 'reset'])->name('roles.reset');
+    });
+    Route::middleware('can:roles.manage')->group(function () {
+        Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
+        Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
+        Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+    });
+    Route::get('history', [AuditController::class, 'index'])->middleware('can:audit.view')->name('audit.index');
 });
 
 require __DIR__.'/auth.php';
