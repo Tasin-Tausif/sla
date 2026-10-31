@@ -140,3 +140,58 @@ The referenced root `support-ticket-erd.md` is not present in this checkout.
 
 Future improvements include category-based routing, pausable SLA clocks, richer email
 theming, production Docker secrets/observability, and durable object storage.
+
+## Run with Docker
+
+Prerequisite: Docker Desktop. Start the three-service local stack with:
+
+```sh
+docker compose up --build
+```
+
+The app is at [http://localhost:8080](http://localhost:8080) and Mailpit is at
+[http://localhost:8025](http://localhost:8025). The first start runs migrations, base seeders,
+and demo data; the queue worker and scheduler run inside the app container. Test accounts are
+listed above. Run Artisan commands with `docker compose exec app php artisan ...`.
+Change ports with `APP_PORT=8081 APP_URL=http://localhost:8081 docker compose up`.
+`docker compose down -v` deletes local database and storage data. The production image omits
+development dependencies, so run `./vendor/bin/pest` locally against `sla_test`.
+
+## Deploy to Render with TiDB Cloud
+
+Create an empty TiDB Cloud database named `sla`, allow the Render service IP access, and copy
+the TiDB host, port `4000`, `<prefix>.root` username, and password. Create a Render Web Service
+using the root Dockerfile and health check path `/up`. Generate `APP_KEY` with
+`php artisan key:generate --show`, then configure:
+
+| Variable | Purpose |
+|---|---|
+| `APP_NAME` | Application name |
+| `APP_ENV=production` | Production mode |
+| `APP_DEBUG=false` | Disable debug output |
+| `APP_KEY` | Encryption secret |
+| `APP_URL=https://<service>.onrender.com` | Canonical URL |
+| `FORCE_HTTPS=true` | HTTPS URL generation |
+| `LOG_CHANNEL=stderr` | Render logs |
+| `DB_CONNECTION=mysql` | MySQL-compatible driver |
+| `DB_HOST` | TiDB host |
+| `DB_PORT=4000` | TiDB TLS port |
+| `DB_DATABASE` | TiDB database |
+| `DB_USERNAME` | TiDB `<prefix>.root` user |
+| `DB_PASSWORD` | TiDB password |
+| `MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt` | TLS CA |
+| `TICKETS_FULLTEXT_SEARCH=false` | Use LIKE on TiDB |
+| `SESSION_DRIVER=database` | Database sessions |
+| `CACHE_STORE=database` | Database cache |
+| `QUEUE_CONNECTION=database` | Database queue |
+| `DB_QUEUE_RETRY_AFTER=3700` | Long import retry window |
+| `MAIL_MAILER=log` | Log emails |
+| `SEED_PASSWORD` | Seed account password |
+| `RUN_SEED=true` | Enable initial seeding |
+| `SEED_DEMO=true` | Optional reviewer demo data |
+
+On Render's free tier, sleeping pauses queue and scheduler work; state-based idempotent SLA
+checks catch up on the next tick. Local attachments/import files are lost after restart or
+redeploy. TiDB uses LIKE keyword search and emails go to logs. For troubleshooting, verify
+the CA path, the `<prefix>.root` username, TiDB IP allow-list, Render `PORT`, and any
+`start.sh` missing-variable message.
