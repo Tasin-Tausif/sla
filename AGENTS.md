@@ -12,6 +12,9 @@ The design document is `support-ticket-erd.md` in the repo root. Read it, never 
 - Render/TiDB production uses the final Docker `production` stage; do not contact Render or TiDB during local work.
 - Docker review commands must not use `docker compose down -v`, remove volumes, prune images, or otherwise delete unrelated Docker data.
 - Never run destructive database commands against the `sla` development database. Tests run only through `./vendor/bin/pest`.
+- Render/TiDB production uses the final Docker `production` stage; do not contact Render or TiDB during local work.
+- Docker review commands must not use `docker compose down -v`, remove volumes, prune images, or otherwise delete unrelated Docker data.
+- Never run destructive database commands against the `sla` development database. Tests run only through `./vendor/bin/pest`.
 - The development database is `sla` and contains user data. Never run `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `db:wipe`, or destructive seed commands against it. Only run the explicitly approved idempotent seeders when the task requires them.
 
 ## Conventions

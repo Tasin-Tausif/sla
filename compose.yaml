@@ -30,7 +30,6 @@ services:
       RUN_SEED: "true"
       SEED_DEMO: "true"
       DB_PROTECT_DESTRUCTIVE: "true"
-
   db:
     image: mysql:8.4
     environment:
@@ -45,12 +44,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-
   mailpit:
     image: axllent/mailpit
     ports:
       - "${MAILPIT_PORT:-8025}:8025"
-
 # Default passwords are local-demo defaults only; override them with environment variables.
 volumes:
   db_data:

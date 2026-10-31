@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Ticket;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\UserSeeder;
@@ -10,7 +9,7 @@ use Illuminate\Support\Facades\URL;
 it('uses LIKE search when full text search is disabled', function () {
     config(['tickets.search.fulltext' => false]);
 
-    expect(Ticket::query()->searchKeyword('support')->toSql())
+    expect(\App\Models\Ticket::query()->searchKeyword('support')->toSql())
         ->toContain('like')
         ->not->toContain('match');
 });

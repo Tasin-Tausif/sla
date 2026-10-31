@@ -11,7 +11,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources
 COPY public ./public
-RUN mkdir -p storage/framework/views
+COPY storage/framework/views ./storage/framework/views
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 COPY --from=vendor /var/www/html/vendor/laravel/framework/src/Illuminate/Pagination/resources/views ./vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 RUN npm run build
@@ -25,13 +25,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && install-php-extensions pdo_mysql mbstring intl zip bcmath pcntl opcache exif \
     && a2enmod rewrite headers \
-    && sed -i 's/^Listen 80$/Listen 80/' /etc/apache2/ports.conf \
     && printf 'ServerName localhost\n' > /etc/apache2/conf-available/server-name.conf \
     && a2enconf server-name
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf \
-    /etc/apache2/apache2.conf \
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf \
     && printf '<Directory /var/www/html/public>\n    AllowOverride All\n    Require all granted\n</Directory>\n' > /etc/apache2/conf-available/laravel.conf \
     && a2enconf laravel
 
@@ -43,8 +41,7 @@ COPY --from=assets --chown=www-data:www-data /var/www/html/public/build ./public
 
 RUN composer dump-autoload --optimize \
     && php artisan package:discover --ansi \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
-        storage/logs storage/app \
+    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker/start.sh /usr/local/bin/start.sh

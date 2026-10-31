@@ -25,6 +25,11 @@
 /storage/app/public/*
 /storage/app/samples/*
 /storage/app/imports/*
+/storage/logs/*
+/storage/app/private/*
+/storage/app/public/*
+/storage/app/samples/*
+/storage/app/imports/*
 /vendor
 _ide_helper.php
 Homestead.json
