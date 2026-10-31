@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (! $this->supportsFullTextIndex()) {
             return;
         }
 
@@ -20,12 +20,30 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (! $this->supportsFullTextIndex()) {
             return;
         }
 
         Schema::table('tickets', function (Blueprint $table) {
             $table->dropFullText(['subject', 'description']);
         });
+    }
+
+    private function supportsFullTextIndex(): bool
+    {
+        if (
+            ! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)
+            || ! config('tickets.search.fulltext', true)
+        ) {
+            return false;
+        }
+
+        try {
+            $version = (string) DB::selectOne('select version() as version')->version;
+        } catch (Throwable) {
+            $version = '';
+        }
+
+        return ! str_contains(strtolower($version), 'tidb');
     }
 };

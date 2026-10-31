@@ -1,0 +1,110 @@
+x-app: &app
+  build:
+    context: .
+    target: app
+  environment:
+    APP_URL: ${APP_URL:-http://localhost:8080}
+    DB_PASSWORD: ${DB_PASSWORD:-sla_local_password}
+    DB_HOST: db
+    DB_DATABASE: sla
+    DB_USERNAME: sla
+    DOCKER_SEED_DEMO: ${DOCKER_SEED_DEMO:-true}
+  volumes:
+    - app_storage:/var/www/html/storage
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: sla
+      MYSQL_USER: sla
+      MYSQL_PASSWORD: ${DB_PASSWORD:-sla_local_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_local_password}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Uncomment to expose MySQL to the host on port 3307.
+    # ports:
+    #   - "127.0.0.1:3307:3306"
+
+  app:
+    <<: *app
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_PASSWORD: ${DB_PASSWORD:-sla_local_password}
+      DB_HOST: db
+      DB_DATABASE: sla
+      DB_USERNAME: sla
+      DOCKER_SEED_DEMO: ${DOCKER_SEED_DEMO:-true}
+      CONTAINER_ROLE: app
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/www/html/storage/app/.docker-ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  queue:
+    <<: *app
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_PASSWORD: ${DB_PASSWORD:-sla_local_password}
+      DB_HOST: db
+      DB_DATABASE: sla
+      DB_USERNAME: sla
+      DOCKER_SEED_DEMO: ${DOCKER_SEED_DEMO:-true}
+      CONTAINER_ROLE: queue
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=3600", "--sleep=3", "--max-time=3600"]
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+
+  scheduler:
+    <<: *app
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_PASSWORD: ${DB_PASSWORD:-sla_local_password}
+      DB_HOST: db
+      DB_DATABASE: sla
+      DB_USERNAME: sla
+      DOCKER_SEED_DEMO: ${DOCKER_SEED_DEMO:-true}
+      CONTAINER_ROLE: scheduler
+    command: ["php", "artisan", "schedule:work"]
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+
+# Default passwords are local-demo defaults only; override them with environment variables.
+volumes:
+  db_data:
+  app_storage:

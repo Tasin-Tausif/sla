@@ -43,6 +43,15 @@ it('filters by ticket number prefix and two character keyword', function () {
         ->assertSee($match->ticket_number);
 });
 
+it('uses the LIKE search fallback when full text search is disabled', function () {
+    config()->set('tickets.search.fulltext', false);
+
+    $sql = Ticket::query()->searchKeyword('support')->toSql();
+
+    expect($sql)->toContain('like')
+        ->not->toContain('match');
+});
+
 it('keeps customer visibility before forged filters', function () {
     $customer = filterUser('customer');
     $other = filterUser('customer');

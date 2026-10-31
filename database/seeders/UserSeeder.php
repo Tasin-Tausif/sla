@@ -67,7 +67,7 @@ class UserSeeder extends Seeder
     {
         $user = User::firstOrCreate(
             ['email' => $email],
-            ['name' => $name, 'password' => 'password'],
+            ['name' => $name, 'password' => config('app.seed_password')],
         );
 
         $user->forceFill(array_merge([
